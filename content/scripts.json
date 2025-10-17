@@ -1,0 +1,234 @@
+{
+  "scripts": [
+    {
+      "id": "bubble-breathing",
+      "name": "Bubble Breathing",
+      "description": "Breathe slowly like you're blowing gentle bubbles",
+      "icon_emoji": "🫧",
+      "recommended_for_emotions": ["scared", "sad", "angry"],
+      "recommended_for_intensities": [2, 3, 4, 5],
+      "duration_seconds": 60,
+      "steps": [
+        {
+          "text": "Let's breathe like we're blowing bubbles. Get ready!",
+          "duration_ms": 3000,
+          "emoji": "🫧"
+        },
+        {
+          "text": "Take a slow breath in through your nose... 1, 2, 3",
+          "duration_ms": 4000,
+          "emoji": "👃"
+        },
+        {
+          "text": "Now blow out slowly like you're making a big bubble... 1, 2, 3, 4",
+          "duration_ms": 5000,
+          "emoji": "💨"
+        },
+        {
+          "text": "Great! Let's do it again. Breathe in... 1, 2, 3",
+          "duration_ms": 4000,
+          "emoji": "👃"
+        },
+        {
+          "text": "And blow your bubble out... 1, 2, 3, 4",
+          "duration_ms": 5000,
+          "emoji": "💨"
+        },
+        {
+          "text": "One more time! Breathe in... 1, 2, 3",
+          "duration_ms": 4000,
+          "emoji": "👃"
+        },
+        {
+          "text": "And blow out your biggest bubble... 1, 2, 3, 4",
+          "duration_ms": 5000,
+          "emoji": "💨"
+        },
+        {
+          "text": "Wonderful! You made such great bubbles!",
+          "duration_ms": 3000,
+          "emoji": "✨"
+        }
+      ]
+    },
+    {
+      "id": "wall-pushes",
+      "name": "Wall Pushes",
+      "description": "Push against a wall to use your strong muscles",
+      "icon_emoji": "🧱",
+      "recommended_for_emotions": ["angry"],
+      "recommended_for_intensities": [3, 4, 5],
+      "duration_seconds": 45,
+      "steps": [
+        {
+          "text": "Let's use our strong muscles! Find a wall you can push.",
+          "duration_ms": 4000,
+          "emoji": "🧱"
+        },
+        {
+          "text": "Put both hands flat on the wall, like you're going to push it.",
+          "duration_ms": 4000,
+          "emoji": "✋"
+        },
+        {
+          "text": "Now push as hard as you can! Count to 5. Ready?",
+          "duration_ms": 3000,
+          "emoji": "💪"
+        },
+        {
+          "text": "Push! 1... 2... 3... 4... 5!",
+          "duration_ms": 6000,
+          "emoji": "💪"
+        },
+        {
+          "text": "Take a breath. Great work!",
+          "duration_ms": 3000,
+          "emoji": "😌"
+        },
+        {
+          "text": "Let's try again. Push hard! 1... 2... 3... 4... 5!",
+          "duration_ms": 6000,
+          "emoji": "💪"
+        },
+        {
+          "text": "Awesome! You used your muscles really well!",
+          "duration_ms": 3000,
+          "emoji": "⭐"
+        }
+      ]
+    },
+    {
+      "id": "grounding-5-4-3-2-1",
+      "name": "5-4-3-2-1 Grounding",
+      "description": "Notice things around you to feel more present",
+      "icon_emoji": "👀",
+      "recommended_for_emotions": ["scared"],
+      "recommended_for_intensities": [2, 3, 4, 5],
+      "duration_seconds": 90,
+      "steps": [
+        {
+          "text": "Let's look around and notice things. This will help you feel better.",
+          "duration_ms": 4000,
+          "emoji": "👀"
+        },
+        {
+          "text": "First, find 5 things you can see. Look around slowly.",
+          "duration_ms": 8000,
+          "emoji": "👁️"
+        },
+        {
+          "text": "Good! Now find 4 things you can touch. What do they feel like?",
+          "duration_ms": 8000,
+          "emoji": "✋"
+        },
+        {
+          "text": "Nice! Now find 3 things you can hear. Listen carefully.",
+          "duration_ms": 8000,
+          "emoji": "👂"
+        },
+        {
+          "text": "Great! Now find 2 things you can smell. Take a sniff.",
+          "duration_ms": 8000,
+          "emoji": "👃"
+        },
+        {
+          "text": "Last one! Find 1 thing you can taste. Maybe your mouth or a drink.",
+          "duration_ms": 8000,
+          "emoji": "👅"
+        },
+        {
+          "text": "You did it! You're right here, right now. Well done!",
+          "duration_ms": 4000,
+          "emoji": "🌟"
+        }
+      ]
+    },
+    {
+      "id": "gentle-stretch",
+      "name": "Gentle Stretch",
+      "description": "Slow, easy stretches to relax your body",
+      "icon_emoji": "🤸",
+      "recommended_for_emotions": ["sad", "scared", "calm"],
+      "recommended_for_intensities": [1, 2, 3],
+      "duration_seconds": 50,
+      "steps": [
+        {
+          "text": "Let's do some gentle stretches to help your body feel better.",
+          "duration_ms": 4000,
+          "emoji": "🤸"
+        },
+        {
+          "text": "Reach your arms up high like you're touching the sky!",
+          "duration_ms": 5000,
+          "emoji": "🙌"
+        },
+        {
+          "text": "Now slowly bend to one side, like a tree in the wind.",
+          "duration_ms": 5000,
+          "emoji": "🌳"
+        },
+        {
+          "text": "Come back to center and bend to the other side.",
+          "duration_ms": 5000,
+          "emoji": "🌳"
+        },
+        {
+          "text": "Great! Now roll your shoulders back slowly, one at a time.",
+          "duration_ms": 5000,
+          "emoji": "🔄"
+        },
+        {
+          "text": "Shake out your hands like you're shaking off water!",
+          "duration_ms": 4000,
+          "emoji": "💦"
+        },
+        {
+          "text": "Take a deep breath and relax. You did wonderfully!",
+          "duration_ms": 4000,
+          "emoji": "😌"
+        }
+      ]
+    },
+    {
+      "id": "count-to-ten",
+      "name": "Count to Ten",
+      "description": "Slow counting to calm down",
+      "icon_emoji": "🔢",
+      "recommended_for_emotions": ["angry"],
+      "recommended_for_intensities": [2, 3, 4],
+      "duration_seconds": 40,
+      "steps": [
+        {
+          "text": "Let's count slowly together. This helps calm big feelings.",
+          "duration_ms": 4000,
+          "emoji": "🔢"
+        },
+        {
+          "text": "Take a breath and let's count. 1... 2... 3...",
+          "duration_ms": 5000,
+          "emoji": "1️⃣"
+        },
+        {
+          "text": "Keep going slowly. 4... 5... 6...",
+          "duration_ms": 5000,
+          "emoji": "5️⃣"
+        },
+        {
+          "text": "Almost there! 7... 8... 9...",
+          "duration_ms": 5000,
+          "emoji": "9️⃣"
+        },
+        {
+          "text": "And... 10! You did it!",
+          "duration_ms": 3000,
+          "emoji": "🔟"
+        },
+        {
+          "text": "Great job counting slowly. How do you feel now?",
+          "duration_ms": 3000,
+          "emoji": "😊"
+        }
+      ]
+    }
+  ]
+}

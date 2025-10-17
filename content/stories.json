@@ -1,0 +1,244 @@
+{
+  "stories": [
+    {
+      "id": "S001",
+      "title": "Gold Star",
+      "text": "I got a gold star on my drawing today!",
+      "emotion": "happy",
+      "age_band": "6-7",
+      "complexity_score": 1
+    },
+    {
+      "id": "S002",
+      "title": "Lost Pencil",
+      "text": "I lost my favorite pencil and can't find it anywhere.",
+      "emotion": "sad",
+      "age_band": "6-7",
+      "complexity_score": 1
+    },
+    {
+      "id": "S003",
+      "title": "Broken Castle",
+      "text": "My little brother broke my Lego castle that I worked on all day.",
+      "emotion": "angry",
+      "age_band": "6-7",
+      "complexity_score": 2
+    },
+    {
+      "id": "S004",
+      "title": "New School",
+      "text": "Tomorrow is my first day at a new school and I don't know anyone there.",
+      "emotion": "scared",
+      "age_band": "6-7",
+      "complexity_score": 2
+    },
+    {
+      "id": "S005",
+      "title": "Tying Shoes",
+      "text": "I've been trying to tie my shoes for a long time but I keep messing up.",
+      "emotion": "angry",
+      "age_band": "6-7",
+      "complexity_score": 1
+    },
+    {
+      "id": "S006",
+      "title": "Reading Time",
+      "text": "It's Saturday morning and I'm reading my favorite book in my cozy corner.",
+      "emotion": "calm",
+      "age_band": "6-7",
+      "complexity_score": 1
+    },
+    {
+      "id": "S007",
+      "title": "Zoo Trip",
+      "text": "We're going to the zoo today and I might get to feed the giraffes!",
+      "emotion": "happy",
+      "age_band": "6-7",
+      "complexity_score": 2
+    },
+    {
+      "id": "S008",
+      "title": "Rejected at Recess",
+      "text": "My friend said she doesn't want to play with me at recess today.",
+      "emotion": "sad",
+      "age_band": "6-7",
+      "complexity_score": 2
+    },
+    {
+      "id": "S009",
+      "title": "Unfair Turn",
+      "text": "Someone took my turn on the swing even though I was waiting first.",
+      "emotion": "angry",
+      "age_band": "6-7",
+      "complexity_score": 2
+    },
+    {
+      "id": "S010",
+      "title": "Fire Alarm",
+      "text": "The fire alarm at school was so loud it hurt my ears.",
+      "emotion": "scared",
+      "age_band": "6-7",
+      "complexity_score": 2
+    },
+    {
+      "id": "S011",
+      "title": "Perfect Score",
+      "text": "I studied hard for my spelling test and got every word right!",
+      "emotion": "happy",
+      "age_band": "8-9",
+      "complexity_score": 2
+    },
+    {
+      "id": "S012",
+      "title": "One Wrong",
+      "text": "I studied hard for my spelling test, but I still got one word wrong.",
+      "emotion": "sad",
+      "age_band": "8-9",
+      "complexity_score": 2
+    },
+    {
+      "id": "S013",
+      "title": "Blamed Unfairly",
+      "text": "My teammate blamed me when we lost the game, but it wasn't just my fault.",
+      "emotion": "angry",
+      "age_band": "8-9",
+      "complexity_score": 3
+    },
+    {
+      "id": "S014",
+      "title": "Big Presentation",
+      "text": "I have a big presentation tomorrow and I'm not sure I remember everything.",
+      "emotion": "scared",
+      "age_band": "8-9",
+      "complexity_score": 3
+    },
+    {
+      "id": "S015",
+      "title": "Math Confusion",
+      "text": "I've asked my teacher to explain this math problem three times and I still don't get it.",
+      "emotion": "angry",
+      "age_band": "8-9",
+      "complexity_score": 3
+    },
+    {
+      "id": "S016",
+      "title": "Free Afternoon",
+      "text": "I finished all my homework early and now I have the whole afternoon free.",
+      "emotion": "calm",
+      "age_band": "8-9",
+      "complexity_score": 2
+    },
+    {
+      "id": "S017",
+      "title": "Art Display",
+      "text": "My art project got chosen to be displayed in the school hallway!",
+      "emotion": "happy",
+      "age_band": "8-9",
+      "complexity_score": 2
+    },
+    {
+      "id": "S018",
+      "title": "Left Out",
+      "text": "I heard my two best friends making plans without inviting me.",
+      "emotion": "sad",
+      "age_band": "8-9",
+      "complexity_score": 3
+    },
+    {
+      "id": "S019",
+      "title": "Answer Copying",
+      "text": "Someone keeps copying my answers even though I asked them to stop.",
+      "emotion": "angry",
+      "age_band": "10-12",
+      "complexity_score": 3
+    },
+    {
+      "id": "S020",
+      "title": "Substitute Teacher",
+      "text": "There's a substitute teacher today and I don't know what the schedule will be.",
+      "emotion": "scared",
+      "age_band": "10-12",
+      "complexity_score": 2
+    },
+    {
+      "id": "S021",
+      "title": "Dog's Greeting",
+      "text": "My dog was so happy to see me when I got home from school!",
+      "emotion": "happy",
+      "age_band": "6-7",
+      "complexity_score": 1
+    },
+    {
+      "id": "S022",
+      "title": "Sick Grandma",
+      "text": "My grandma is sick and I can't visit her this weekend.",
+      "emotion": "sad",
+      "age_band": "8-9",
+      "complexity_score": 3
+    },
+    {
+      "id": "S023",
+      "title": "Privacy Invaded",
+      "text": "My sibling went into my room and used my things without asking.",
+      "emotion": "angry",
+      "age_band": "8-9",
+      "complexity_score": 2
+    },
+    {
+      "id": "S024",
+      "title": "Thunder Storm",
+      "text": "There's a storm outside with loud thunder and lightning.",
+      "emotion": "scared",
+      "age_band": "6-7",
+      "complexity_score": 2
+    },
+    {
+      "id": "S025",
+      "title": "Computer Wait",
+      "text": "I've been waiting all day for my turn on the computer but others keep using it.",
+      "emotion": "angry",
+      "age_band": "8-9",
+      "complexity_score": 2
+    },
+    {
+      "id": "S026",
+      "title": "Cloud Watching",
+      "text": "I'm sitting in my favorite spot watching the clouds go by.",
+      "emotion": "calm",
+      "age_band": "6-7",
+      "complexity_score": 1
+    },
+    {
+      "id": "S027",
+      "title": "Birthday Party",
+      "text": "Tomorrow is my birthday party and all my friends are coming!",
+      "emotion": "happy",
+      "age_band": "6-7",
+      "complexity_score": 2
+    },
+    {
+      "id": "S028",
+      "title": "Missing Toy",
+      "text": "My favorite stuffed animal is missing and I looked everywhere.",
+      "emotion": "sad",
+      "age_band": "6-7",
+      "complexity_score": 2
+    },
+    {
+      "id": "S029",
+      "title": "Not Heard",
+      "text": "Everyone was talking over me at lunch and no one listened to my story.",
+      "emotion": "angry",
+      "age_band": "10-12",
+      "complexity_score": 3
+    },
+    {
+      "id": "S030",
+      "title": "Helping Friend",
+      "text": "I helped my friend understand their homework and they said thank you.",
+      "emotion": "happy",
+      "age_band": "8-9",
+      "complexity_score": 2
+    }
+  ]
+}
