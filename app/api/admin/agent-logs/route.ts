@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const sessionId = searchParams.get('session_id')
     const roundId = searchParams.get('round_id')
 
-    // Build query with type assertion (agent_generations not in generated types)
+    // Build query (type assertion needed for RLS-enabled table)
     let query = (supabase as any)
       .from('agent_generations')
       .select('*')

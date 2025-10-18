@@ -42,6 +42,7 @@ CREATE TABLE agent_generations (
   safety_flags TEXT[] NOT NULL DEFAULT '{}',
   generation_time_ms INTEGER,
   tokens_used INTEGER,
+  metadata JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

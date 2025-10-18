@@ -21,9 +21,11 @@ export type Database = {
           generation_time_ms: number | null
           id: string
           input_context: Json
+          metadata: Json | null
           model_version: string
           output_content: Json
           round_id: string | null
+          session_id: string | null
           safety_flags: string[]
           tokens_used: number | null
         }
@@ -33,9 +35,11 @@ export type Database = {
           generation_time_ms?: number | null
           id?: string
           input_context: Json
+          metadata?: Json | null
           model_version: string
           output_content: Json
           round_id?: string | null
+          session_id?: string | null
           safety_flags?: string[]
           tokens_used?: number | null
         }
@@ -45,9 +49,11 @@ export type Database = {
           generation_time_ms?: number | null
           id?: string
           input_context?: Json
+          metadata?: Json | null
           model_version?: string
           output_content?: Json
           round_id?: string | null
+          session_id?: string | null
           safety_flags?: string[]
           tokens_used?: number | null
         }
@@ -57,6 +63,13 @@ export type Database = {
             columns: ["round_id"]
             isOneToOne: false
             referencedRelation: "emotion_rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_generations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
             referencedColumns: ["id"]
           },
         ]

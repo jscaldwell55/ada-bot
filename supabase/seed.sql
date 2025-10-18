@@ -75,19 +75,19 @@ VALUES
     'script-bubble-breathing',
     'Bubble Breathing',
     'Breathe slowly like you''re blowing gentle bubbles',
-    '>�',
+    '🫧',
     ARRAY['angry', 'scared', 'sad']::text[],
     ARRAY[2, 3, 4, 5]::integer[],
     60,
     '[
-      {"text": "Let''s blow some calm bubbles together!", "emoji": ">�", "duration_ms": 3000},
-      {"text": "Breathe in slowly through your nose... 1, 2, 3", "emoji": "=C", "duration_ms": 5000},
-      {"text": "Now blow out like making a big bubble... slow and gentle", "emoji": "=�", "duration_ms": 6000},
-      {"text": "Great! Let''s do it again. Breathe in... 1, 2, 3", "emoji": "=C", "duration_ms": 5000},
-      {"text": "And blow out your bubble... nice and slow", "emoji": ">�", "duration_ms": 6000},
-      {"text": "One more time! Breathe in deeply...", "emoji": "=C", "duration_ms": 5000},
-      {"text": "And blow out... watch your calm bubble float away", "emoji": ">�", "duration_ms": 6000},
-      {"text": "Amazing work! You made beautiful calm bubbles!", "emoji": "P", "duration_ms": 4000}
+      {"text": "Let''s blow some calm bubbles together!", "emoji": "🫧", "duration_ms": 3000},
+      {"text": "Breathe in slowly through your nose... 1, 2, 3", "emoji": "😌", "duration_ms": 5000},
+      {"text": "Now blow out like making a big bubble... slow and gentle", "emoji": "💨", "duration_ms": 6000},
+      {"text": "Great! Let''s do it again. Breathe in... 1, 2, 3", "emoji": "😌", "duration_ms": 5000},
+      {"text": "And blow out your bubble... nice and slow", "emoji": "🫧", "duration_ms": 6000},
+      {"text": "One more time! Breathe in deeply...", "emoji": "😌", "duration_ms": 5000},
+      {"text": "And blow out... watch your calm bubble float away", "emoji": "🫧", "duration_ms": 6000},
+      {"text": "Amazing work! You made beautiful calm bubbles!", "emoji": "✨", "duration_ms": 4000}
     ]'::jsonb,
     NOW()
   ),
@@ -95,19 +95,19 @@ VALUES
     'script-wall-pushes',
     'Wall Pushes',
     'Push against the wall to release strong feelings',
-    '>2',
+    '🤚',
     ARRAY['angry', 'scared']::text[],
     ARRAY[3, 4, 5]::integer[],
     45,
     '[
-      {"text": "Let''s push those big feelings out!", "emoji": ">2", "duration_ms": 3000},
-      {"text": "Stand facing a wall and put your hands flat on it", "emoji": ">�", "duration_ms": 4000},
-      {"text": "Now push hard, like you''re trying to move the wall!", "emoji": "=�", "duration_ms": 8000},
-      {"text": "Push, push, push! Use all your strength!", "emoji": "=%", "duration_ms": 8000},
-      {"text": "Keep pushing... you''re doing great!", "emoji": "=�", "duration_ms": 8000},
-      {"text": "And... relax. Let your arms drop down.", "emoji": "=", "duration_ms": 5000},
-      {"text": "Take a deep breath. Notice how your body feels now.", "emoji": "(", "duration_ms": 5000},
-      {"text": "You pushed those big feelings out! Nice job!", "emoji": "P", "duration_ms": 4000}
+      {"text": "Let''s push those big feelings out!", "emoji": "🤚", "duration_ms": 3000},
+      {"text": "Stand facing a wall and put your hands flat on it", "emoji": "🧍", "duration_ms": 4000},
+      {"text": "Now push hard, like you''re trying to move the wall!", "emoji": "💪", "duration_ms": 8000},
+      {"text": "Push, push, push! Use all your strength!", "emoji": "💥", "duration_ms": 8000},
+      {"text": "Keep pushing... you''re doing great!", "emoji": "💪", "duration_ms": 8000},
+      {"text": "And... relax. Let your arms drop down.", "emoji": "😮‍💨", "duration_ms": 5000},
+      {"text": "Take a deep breath. Notice how your body feels now.", "emoji": "🧘", "duration_ms": 5000},
+      {"text": "You pushed those big feelings out! Nice job!", "emoji": "✨", "duration_ms": 4000}
     ]'::jsonb,
     NOW()
   ),
@@ -115,19 +115,19 @@ VALUES
     'script-5-4-3-2-1',
     '5-4-3-2-1 Grounding',
     'Use your senses to come back to the present moment',
-    '=@',
+    '👁️',
     ARRAY['scared', 'angry', 'sad']::text[],
     ARRAY[3, 4, 5]::integer[],
     90,
     '[
-      {"text": "Let''s use our senses to feel calm and safe", "emoji": ">�", "duration_ms": 4000},
-      {"text": "Look around. Can you find 5 things you can see?", "emoji": "=@", "duration_ms": 8000},
-      {"text": "Now find 4 things you can touch. Feel them with your hands.", "emoji": "", "duration_ms": 8000},
-      {"text": "Listen carefully. What are 3 things you can hear?", "emoji": "=B", "duration_ms": 8000},
-      {"text": "Take a deep breath. What are 2 things you can smell?", "emoji": "=C", "duration_ms": 8000},
-      {"text": "Finally, what is 1 thing you can taste?", "emoji": "=E", "duration_ms": 8000},
-      {"text": "You did it! You used all 5 senses!", "emoji": "P", "duration_ms": 4000},
-      {"text": "Notice how you feel more calm and present now.", "emoji": "(", "duration_ms": 5000}
+      {"text": "Let''s use our senses to feel calm and safe", "emoji": "🫶", "duration_ms": 4000},
+      {"text": "Look around. Can you find 5 things you can see?", "emoji": "👁️", "duration_ms": 8000},
+      {"text": "Now find 4 things you can touch. Feel them with your hands.", "emoji": "✋", "duration_ms": 8000},
+      {"text": "Listen carefully. What are 3 things you can hear?", "emoji": "👂", "duration_ms": 8000},
+      {"text": "Take a deep breath. What are 2 things you can smell?", "emoji": "👃", "duration_ms": 8000},
+      {"text": "Finally, what is 1 thing you can taste?", "emoji": "👅", "duration_ms": 8000},
+      {"text": "You did it! You used all 5 senses!", "emoji": "✨", "duration_ms": 4000},
+      {"text": "Notice how you feel more calm and present now.", "emoji": "🧘", "duration_ms": 5000}
     ]'::jsonb,
     NOW()
   );

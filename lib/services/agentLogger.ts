@@ -11,7 +11,19 @@
  * - Graceful degradation: Errors are logged to console but suppressed
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/types/database'
+
+/**
+ * Creates a Supabase client with service role for logging
+ * This bypasses RLS policies to ensure logs are always written
+ */
+function createServiceClient() {
+  return createSupabaseClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 // ============================================================================
 // Types
@@ -68,26 +80,33 @@ export function logAgentAction(
 /**
  * Core database logging function
  * Inserts record into agent_generations table
- * Uses type assertion to bypass TypeScript checking (table not in generated types)
  * Never throws errors - logging failures are non-critical
+ *
+ * Note: Uses type assertion due to Supabase client type inference limitations
+ * with RLS policies. The insertData is properly typed before assertion.
  */
 export async function logAgentGeneration(entry: AgentLogEntry): Promise<void> {
   try {
-    const supabase = createClient()
+    const supabase = createServiceClient()
 
+    type AgentGenerationInsert = Database['public']['Tables']['agent_generations']['Insert']
+
+    const insertData: AgentGenerationInsert = {
+      agent_type: entry.agent_type,
+      round_id: entry.round_id || null,
+      session_id: entry.session_id || null,
+      input_context: entry.input_context,
+      output_content: entry.output_content,
+      model_version: entry.model_version,
+      generation_time_ms: entry.generation_time_ms,
+      safety_flags: entry.safety_flags || [],
+      metadata: entry.metadata || {},
+    }
+
+    // Type assertion needed for RLS-enabled table
     const { error } = await (supabase as any)
       .from('agent_generations')
-      .insert({
-        agent_type: entry.agent_type,
-        round_id: entry.round_id || null,
-        session_id: entry.session_id || null,
-        input_context: entry.input_context,
-        output_content: entry.output_content,
-        model_version: entry.model_version,
-        generation_time_ms: entry.generation_time_ms,
-        safety_flags: entry.safety_flags || [],
-        metadata: entry.metadata || {},
-      })
+      .insert(insertData)
 
     if (error) {
       console.error('[Agent Logger] Database insert failed:', error.message)
@@ -322,11 +341,15 @@ export function logFallback(
  * Queries all agent generations for a session
  * Returns array of log entries ordered by timestamp
  * Used for clinical analysis and reporting
+ *
+ * Note: Uses type assertion due to Supabase client type inference limitations
+ * with RLS policies.
  */
 export async function exportSessionLogs(sessionId: string): Promise<AgentLogEntry[]> {
   try {
-    const supabase = createClient()
+    const supabase = createServiceClient()
 
+    // Type assertion needed for RLS-enabled table
     const { data, error } = await (supabase as any)
       .from('agent_generations')
       .select('*')

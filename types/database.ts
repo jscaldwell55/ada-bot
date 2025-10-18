@@ -250,7 +250,8 @@ export interface InsertParentFeedback {
 // ==================== Agent Generation ====================
 export interface AgentGeneration {
   id: string
-  round_id: string
+  round_id: string | null
+  session_id: string | null
   agent_type: 'observer' | 'action_story' | 'action_script' | 'action_praise'
   input_context: Json
   output_content: Json
@@ -258,12 +259,14 @@ export interface AgentGeneration {
   safety_flags: string[]
   generation_time_ms: number | null
   tokens_used: number | null
+  metadata: Json | null
   created_at: string
 }
 
 export interface InsertAgentGeneration {
   id?: string
-  round_id: string
+  round_id?: string | null
+  session_id?: string | null
   agent_type: 'observer' | 'action_story' | 'action_script' | 'action_praise'
   input_context: Json
   output_content: Json
@@ -271,11 +274,15 @@ export interface InsertAgentGeneration {
   safety_flags?: string[]
   generation_time_ms?: number | null
   tokens_used?: number | null
+  metadata?: Json | null
   created_at?: string
 }
 
 // ==================== Database Schema ====================
 export interface Database {
+  __InternalSupabase?: {
+    PostgrestVersion: '12'
+  }
   public: {
     Tables: {
       children: {
