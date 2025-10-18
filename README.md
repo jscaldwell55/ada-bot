@@ -2,7 +2,7 @@
 
 A safe, structured emotion recognition and regulation chatbot designed for neurodivergent children (ages 6-12). Ada helps children practice identifying emotions, rating their intensity, and learning self-regulation strategies through short, therapeutic story-based conversations.
 
-Inspired by this paper: "Using Artificial Intelligence to Improve Empathetic Statements in Autistic Adolescents and Adults: A Randomized Clinical Trial". 
+Ada was inspired by this paper: "Using Artificial Intelligence to Improve Empathetic Statements in Autistic Adolescents and Adults: A Randomized Clinical Trial". 
 https://www.researchgate.net/publication/389029249_Using_Artificial_Intelligence_to_Improve_Empathetic_Statements_in_Autistic_Adolescents_and_Adults_A_Randomized_Clinical_Trial
 ---
 
