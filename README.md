@@ -1,4 +1,4 @@
-# Ada Emotion Coach 🌟
+# Ada Bot 🌟
 
 A safe, structured emotion recognition and regulation chatbot designed for neurodivergent children (ages 6-12). Ada helps children practice identifying emotions, rating their intensity, and learning self-regulation strategies through short, therapeutic story-based conversations.
 
