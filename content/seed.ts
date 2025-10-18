@@ -5,6 +5,8 @@
  * Usage: npx tsx content/seed.ts
  */
 
+import { config } from 'dotenv';
+config({ path: '.env.local' });
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 import storiesData from './stories.json'

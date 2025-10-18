@@ -7,25 +7,52 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useSupabase } from '@/components/providers/SupabaseProvider'
 import type { Child } from '@/types/database'
 import ChildCard from '@/components/dashboard/ChildCard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, Users, TrendingUp, Calendar } from 'lucide-react'
+import { Plus, Users, TrendingUp, Calendar, Loader2 } from 'lucide-react'
 
 export default function ParentDashboardPage() {
   const supabase = useSupabase()
+  const router = useRouter()
   const [children, setChildren] = useState<Child[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [parentId, setParentId] = useState<string | null>(null)
 
+  // Check authentication first
   useEffect(() => {
+    async function checkAuth() {
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+        if (authError || !user) {
+          router.push('/auth/login?redirect=/parent')
+          return
+        }
+
+        setParentId(user.id)
+      } catch (err) {
+        console.error('Error checking authentication:', err)
+        router.push('/auth/login')
+      }
+    }
+
+    checkAuth()
+  }, [supabase, router])
+
+  // Load children once we have parentId
+  useEffect(() => {
+    if (!parentId) return
+
     async function loadChildren() {
       try {
-        // In a real app, filter by parent_id from auth
         const { data, error } = await supabase
           .from('children')
           .select('*')
+          .eq('parent_id', parentId!)
           .order('created_at', { ascending: false })
 
         if (error) throw error
@@ -38,16 +65,14 @@ export default function ParentDashboardPage() {
     }
 
     loadChildren()
-  }, [supabase])
+  }, [supabase, parentId])
 
-  if (isLoading) {
+  if (isLoading || !parentId) {
     return (
-      <div className="space-y-6">
-        <div className="skeleton h-32 rounded-lg" />
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="skeleton h-64 rounded-lg" />
-          ))}
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
     )
@@ -161,7 +186,7 @@ export default function ParentDashboardPage() {
             2. Click on their profile to start an emotion practice session
           </p>
           <p className="text-sm">
-            3. They'll read stories, identify emotions, and practice regulation skills
+            3. They&apos;ll read stories, identify emotions, and practice regulation skills
           </p>
           <p className="text-sm">
             4. Review their progress and insights in the dashboard

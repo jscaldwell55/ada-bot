@@ -18,10 +18,10 @@ export async function POST(request: NextRequest) {
     // Temporary workaround for Supabase type inference issue
     const supabase = createServerClient() as any
 
-    // Verify session exists
+    // Verify session exists and get agent settings
     const { data: session, error: sessionError } = await supabase
       .from('sessions')
-      .select('id, completed_at')
+      .select('id, completed_at, agent_enabled, child_id, cumulative_context')
       .eq('id', validatedData.session_id)
       .single()
 
@@ -45,28 +45,74 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify story exists
-    const { data: story, error: storyError } = await supabase
-      .from('stories')
-      .select('id')
-      .eq('id', validatedData.story_id)
-      .single()
+    let storyId = validatedData.story_id
+    let generatedStory = null
 
-    if (storyError || !story) {
-      return NextResponse.json(
-        {
-          error: 'not_found',
-          message: 'Story not found',
-        },
-        { status: 404 }
-      )
+    // If agents are enabled, generate a story dynamically
+    if (session.agent_enabled) {
+      try {
+        // Get Observer context from previous round
+        const previousContext = session.cumulative_context &&
+                               (session.cumulative_context as any[]).length > 0
+                               ? (session.cumulative_context as any[])[validatedData.round_number - 2]
+                               : null
+
+        // Call story generation API
+        const storyGenResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/agent/generate-story`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              child_id: session.child_id,
+              age_band: body.age_band || '8-9', // Should be passed from client
+              observer_summary: previousContext,
+              round_number: validatedData.round_number,
+            }),
+          }
+        )
+
+        const storyGenData = await storyGenResponse.json()
+
+        if (storyGenData.success && storyGenData.story) {
+          generatedStory = storyGenData.story
+          // Store generation metadata for later logging
+          if (storyGenData.generation_metadata) {
+            // We'll log this after round creation
+            (body as any).storyGenerationMetadata = storyGenData.generation_metadata
+          }
+        }
+      } catch (error) {
+        console.error('Story generation failed, using static fallback:', error)
+        // Continue with static story selection
+      }
+    }
+
+    // If no generated story (agents disabled or generation failed), verify static story exists
+    if (!generatedStory) {
+      const { data: story, error: storyError } = await supabase
+        .from('stories')
+        .select('id')
+        .eq('id', validatedData.story_id)
+        .single()
+
+      if (storyError || !story) {
+        return NextResponse.json(
+          {
+            error: 'not_found',
+            message: 'Story not found',
+          },
+          { status: 404 }
+        )
+      }
     }
 
     // Create emotion round
     const roundData: InsertEmotionRound = {
       session_id: validatedData.session_id,
       round_number: validatedData.round_number,
-      story_id: validatedData.story_id,
+      story_id: storyId,
+      action_agent_story: generatedStory as any,
     }
 
     const { data: round, error: roundError } = await supabase

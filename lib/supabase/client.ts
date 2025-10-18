@@ -1,7 +1,7 @@
 // lib/supabase/client.ts
 // Supabase client setup for browser and server
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 
 // ============================================
@@ -22,7 +22,7 @@ export const createBrowserClient = () => {
     );
   }
 
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createSupabaseClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
@@ -65,7 +65,7 @@ export const createServerClient = () => {
     );
   }
 
-  return createClient<Database>(supabaseUrl, supabaseServiceKey, {
+  return createSupabaseClient<Database>(supabaseUrl, supabaseServiceKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
@@ -234,6 +234,16 @@ export const getPublicUrl = (bucket: string, path: string) => {
   
   return data.publicUrl;
 };
+
+// ============================================
+// CONVENIENCE EXPORTS
+// ============================================
+
+/**
+ * Convenience export for client components
+ * Alias for getSupabaseBrowserClient
+ */
+export const createClient = getSupabaseBrowserClient;
 
 // ============================================
 // TYPE EXPORTS (for convenience)

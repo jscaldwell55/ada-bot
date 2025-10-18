@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSupabase } from '@/components/providers/SupabaseProvider'
 import { Button } from '@/components/ui/button'
@@ -35,6 +35,32 @@ export default function NewChildPage() {
   const [avatarEmoji, setAvatarEmoji] = useState('😊')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [parentId, setParentId] = useState<string | null>(null)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+
+  // Check authentication on mount
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+        if (authError || !user) {
+          // Redirect to login if not authenticated
+          router.push('/auth/login?redirect=/parent/children/new')
+          return
+        }
+
+        setParentId(user.id)
+      } catch (err) {
+        console.error('Error checking authentication:', err)
+        router.push('/auth/login')
+      } finally {
+        setIsCheckingAuth(false)
+      }
+    }
+
+    checkAuth()
+  }, [supabase, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,11 +71,13 @@ export default function NewChildPage() {
       return
     }
 
+    if (!parentId) {
+      setError('You must be logged in to create a child profile')
+      return
+    }
+
     try {
       setIsSubmitting(true)
-
-      // In a real app, get parent_id from authenticated user
-      const parentId = '00000000-0000-0000-0000-000000000000' // Placeholder
 
       const { error: insertError } = await supabase
         .from('children')
@@ -74,6 +102,18 @@ export default function NewChildPage() {
     }
   }
 
+  // Show loading while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="max-w-2xl mx-auto flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
       <Button
@@ -89,7 +129,7 @@ export default function NewChildPage() {
         <CardHeader>
           <CardTitle>Add a New Child</CardTitle>
           <CardDescription>
-            Create a profile to track your child's emotion learning journey
+            Create a profile to track your child&apos;s emotion learning journey
           </CardDescription>
         </CardHeader>
 
@@ -111,7 +151,7 @@ export default function NewChildPage() {
                 required
               />
               <p className="text-xs text-muted-foreground">
-                This is how Ada will address your child (e.g., "Sam", "Alex")
+                This is how Ada will address your child (e.g., &quot;Sam&quot;, &quot;Alex&quot;)
               </p>
             </div>
 
@@ -211,7 +251,7 @@ export default function NewChildPage() {
       <Card className="mt-6 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
         <CardContent className="pt-6">
           <p className="text-sm text-blue-900 dark:text-blue-100">
-            <strong>Privacy Notice:</strong> We only collect your child's nickname and age range.
+            <strong>Privacy Notice:</strong> We only collect your child&apos;s nickname and age range.
             No personally identifiable information is stored. All data is encrypted and
             COPPA-compliant.
           </p>

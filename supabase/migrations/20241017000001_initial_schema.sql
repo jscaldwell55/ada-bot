@@ -3,13 +3,13 @@
 -- Creates all tables, RLS policies, and trigger functions
 
 -- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ============================================
 -- CHILDREN TABLE
 -- ============================================
 CREATE TABLE children (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   parent_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   nickname TEXT NOT NULL,
   age_band TEXT NOT NULL CHECK (age_band IN ('6-7', '8-9', '10-12')),
@@ -63,7 +63,7 @@ CREATE INDEX idx_scripts_intensities ON regulation_scripts USING GIN (recommende
 -- SESSIONS TABLE
 -- ============================================
 CREATE TABLE sessions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   child_id UUID NOT NULL REFERENCES children(id) ON DELETE CASCADE,
   started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   completed_at TIMESTAMPTZ,
@@ -81,7 +81,7 @@ CREATE INDEX idx_sessions_child_completed ON sessions(child_id, completed_at);
 -- EMOTION ROUNDS TABLE
 -- ============================================
 CREATE TABLE emotion_rounds (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
   round_number INTEGER NOT NULL,
   story_id TEXT NOT NULL REFERENCES stories(id),
@@ -107,7 +107,7 @@ CREATE INDEX idx_rounds_completed_at ON emotion_rounds(completed_at);
 -- SAFETY ALERTS TABLE
 -- ============================================
 CREATE TABLE safety_alerts (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   child_id UUID NOT NULL REFERENCES children(id) ON DELETE CASCADE,
   session_id UUID REFERENCES sessions(id) ON DELETE SET NULL,
   trigger_text TEXT NOT NULL,
@@ -128,7 +128,7 @@ CREATE INDEX idx_safety_alerts_child_notified ON safety_alerts(child_id, parent_
 -- PARENT FEEDBACK TABLE
 -- ============================================
 CREATE TABLE parent_feedback (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   child_id UUID NOT NULL REFERENCES children(id) ON DELETE CASCADE,
   session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
   rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),

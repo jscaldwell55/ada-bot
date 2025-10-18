@@ -36,25 +36,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get 5 random stories for the child's age band
-    const stories = await getRandomStories(child.age_band, 5)
+    // Determine if agents are enabled (default: false until agent UI is fully integrated)
+    const agentEnabled = body.agent_enabled === true
 
-    if (stories.length < 5) {
-      return NextResponse.json(
-        {
-          error: 'insufficient_content',
-          message: 'Not enough stories available for this age band',
-        },
-        { status: 400 }
-      )
+    let stories: any[] = []
+    let storyIds: string[] = []
+
+    // If agents are NOT enabled, pre-select static stories
+    if (!agentEnabled) {
+      stories = await getRandomStories(child.age_band, 5)
+
+      if (stories.length < 5) {
+        return NextResponse.json(
+          {
+            error: 'insufficient_content',
+            message: 'Not enough stories available for this age band',
+          },
+          { status: 400 }
+        )
+      }
+      storyIds = stories.map(story => story.id)
     }
 
     // Create session
     const sessionData: InsertSession = {
       child_id: validatedData.child_id,
-      story_ids: stories.map(story => story.id),
+      story_ids: storyIds, // Empty if agents enabled (stories generated per round)
       total_rounds: 5,
       completed_rounds: 0,
+      agent_enabled: agentEnabled,
+      cumulative_context: null,
     }
 
     const { data: session, error: sessionError } = await supabase

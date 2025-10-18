@@ -26,6 +26,7 @@ interface ChatInterfaceProps {
   totalRounds: number
   childNickname: string
   story: Story
+  agentEnabled?: boolean
   onRoundComplete: () => void
 }
 
@@ -97,7 +98,7 @@ export default function ChatInterface({
                 Ready to practice understanding emotions?
               </p>
               <p className="text-lg">
-                This is round {roundNumber} of {totalRounds}. Let's read a story together!
+                This is round {roundNumber} of {totalRounds}. Let&apos;s read a story together!
               </p>
               <Button size="lg" onClick={handleStart}>
                 Start Round
@@ -154,7 +155,7 @@ export default function ChatInterface({
                 ) : (
                   <div className="mb-4 p-4 bg-blue-100 dark:bg-blue-900 rounded-lg">
                     <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
-                      Good try! The character felt {state.context.story?.emotion}. Let's practice!
+                      Good try! The character felt {state.context.story?.emotion}. Let&apos;s practice!
                     </p>
                   </div>
                 )}
@@ -162,7 +163,7 @@ export default function ChatInterface({
                   How strong is that feeling for you right now?
                 </h3>
                 <p className="text-muted-foreground">
-                  Move the slider to show how you're feeling
+                  Move the slider to show how you&apos;re feeling
                 </p>
               </div>
               <IntensitySlider
@@ -187,7 +188,7 @@ export default function ChatInterface({
             <div className="space-y-6">
               <div className="text-center">
                 <h3 className="text-2xl font-semibold mb-2">
-                  Let's practice calming down!
+                  Let&apos;s practice calming down!
                 </h3>
                 <p className="text-muted-foreground">
                   Pick an activity to help you feel better
@@ -241,7 +242,7 @@ export default function ChatInterface({
             <div className="text-center space-y-4">
               <div className="p-4 bg-red-100 dark:bg-red-900 rounded-lg">
                 <p className="text-red-800 dark:text-red-200">
-                  Oops! Something went wrong. Let's try again!
+                  Oops! Something went wrong. Let&apos;s try again!
                 </p>
               </div>
               <Button onClick={() => send({ type: 'RETRY' })}>

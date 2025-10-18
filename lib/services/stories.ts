@@ -138,6 +138,11 @@ export async function filterStories(filters: StoryFilters): Promise<Story[]> {
  * Get stories by multiple IDs (for session loading)
  */
 export async function getStoriesByIds(ids: string[]): Promise<Story[]> {
+  // Handle empty array case (e.g., when using agent mode)
+  if (!ids || ids.length === 0) {
+    return []
+  }
+
   // Temporary workaround for Supabase type inference issue
   const supabase = createBrowserClient() as any
 

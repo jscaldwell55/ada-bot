@@ -48,11 +48,18 @@ export default function SessionPage({
   }, [params.childId, supabase])
 
   const handleRoundComplete = () => {
+    console.log('Round complete, current round:', currentRoundNumber)
+    
     if (currentRoundNumber >= 5) {
-      // Session complete, don't advance
+      // Session complete - mark as completed
+      console.log('Session complete!')
       return
     }
-    setCurrentRoundNumber((prev) => prev + 1)
+    
+    // Move to next round
+    const nextRound = currentRoundNumber + 1
+    console.log('Moving to round:', nextRound)
+    setCurrentRoundNumber(nextRound)
   }
 
   if (sessionLoading || !child) {
@@ -63,7 +70,9 @@ export default function SessionPage({
     )
   }
 
-  if (sessionError || !session || stories.length === 0) {
+  // Error check: only show error if there's an actual error or missing session
+  // Note: stories can be empty if agent mode is enabled (stories generated per round)
+  if (sessionError || !session) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md">
@@ -72,6 +81,26 @@ export default function SessionPage({
           </CardHeader>
           <CardContent className="space-y-4">
             <p>{sessionError || 'Failed to load session'}</p>
+            <Button onClick={() => router.push(`/child/${params.childId}`)}>
+              <Home className="mr-2 h-4 w-4" />
+              Go Back
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Check if stories are required (non-agent mode) but missing
+  if (!session.agent_enabled && stories.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="text-red-600">Error</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p>No stories available for this session</p>
             <Button onClick={() => router.push(`/child/${params.childId}`)}>
               <Home className="mr-2 h-4 w-4" />
               Go Back
@@ -108,10 +137,10 @@ export default function SessionPage({
             <div className="bg-yellow-50 dark:bg-yellow-950 rounded-lg p-6">
               <h3 className="font-semibold mb-2">What you learned today:</h3>
               <ul className="space-y-2">
-                <li> Recognized emotions in different stories</li>
-                <li> Practiced calming activities</li>
-                <li> Learned about your feelings</li>
-                <li> Built important life skills!</li>
+                <li>✅ Recognized emotions in different stories</li>
+                <li>✅ Practiced calming activities</li>
+                <li>✅ Learned about your feelings</li>
+                <li>✅ Built important life skills!</li>
               </ul>
             </div>
 
@@ -139,12 +168,13 @@ export default function SessionPage({
   // Get current story for this round
   const currentStory = stories[currentRoundNumber - 1]
 
+  // Wait for story to load
   if (!currentStory) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md">
           <CardHeader>
-            <CardTitle>Loading...</CardTitle>
+            <CardTitle>Loading story for round {currentRoundNumber}...</CardTitle>
           </CardHeader>
           <CardContent>
             <Loader2 className="h-8 w-8 animate-spin mx-auto" />
@@ -156,7 +186,9 @@ export default function SessionPage({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-8">
+      {/* KEY PROP FORCES RE-RENDER WHEN ROUND CHANGES */}
       <ChatInterface
+        key={`round-${currentRoundNumber}`}
         sessionId={session.id}
         roundNumber={currentRoundNumber}
         totalRounds={5}

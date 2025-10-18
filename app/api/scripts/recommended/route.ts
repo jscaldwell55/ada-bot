@@ -8,6 +8,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getRecommendedScripts } from '@/lib/services/scripts'
 import type { EmotionLabel, IntensityLevel } from '@/types/database'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(request: NextRequest) {
   try {
     // Get query parameters

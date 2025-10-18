@@ -113,6 +113,9 @@ export interface Session {
   total_rounds: number
   completed_rounds: number
   story_ids: string[]
+  // Agent architecture columns
+  cumulative_context: Json | null
+  agent_enabled: boolean
 }
 
 export interface InsertSession {
@@ -123,11 +126,17 @@ export interface InsertSession {
   total_rounds?: number
   completed_rounds?: number
   story_ids: string[]
+  // Agent architecture columns
+  cumulative_context?: Json | null
+  agent_enabled?: boolean
 }
 
 export interface UpdateSession {
   completed_at?: string | null
   completed_rounds?: number
+  // Agent architecture columns
+  cumulative_context?: Json | null
+  agent_enabled?: boolean
 }
 
 // ==================== Emotion Round ====================
@@ -144,6 +153,12 @@ export interface EmotionRound {
   is_correct: boolean | null
   started_at: string
   completed_at: string | null
+  // Agent architecture columns
+  observer_context: Json | null
+  action_agent_story: Json | null
+  action_agent_script: Json | null
+  action_agent_praise: string | null
+  generation_metadata: Json | null
 }
 
 export interface InsertEmotionRound {
@@ -159,6 +174,12 @@ export interface InsertEmotionRound {
   is_correct?: boolean | null
   started_at?: string
   completed_at?: string | null
+  // Agent architecture columns
+  observer_context?: Json | null
+  action_agent_story?: Json | null
+  action_agent_script?: Json | null
+  action_agent_praise?: string | null
+  generation_metadata?: Json | null
 }
 
 export interface UpdateEmotionRound {
@@ -169,6 +190,12 @@ export interface UpdateEmotionRound {
   praise_message?: string | null
   is_correct?: boolean | null
   completed_at?: string | null
+  // Agent architecture columns
+  observer_context?: Json | null
+  action_agent_story?: Json | null
+  action_agent_script?: Json | null
+  action_agent_praise?: string | null
+  generation_metadata?: Json | null
 }
 
 // ==================== Safety Alert ====================
@@ -220,6 +247,33 @@ export interface InsertParentFeedback {
   created_at?: string
 }
 
+// ==================== Agent Generation ====================
+export interface AgentGeneration {
+  id: string
+  round_id: string
+  agent_type: 'observer' | 'action_story' | 'action_script' | 'action_praise'
+  input_context: Json
+  output_content: Json
+  model_version: string
+  safety_flags: string[]
+  generation_time_ms: number | null
+  tokens_used: number | null
+  created_at: string
+}
+
+export interface InsertAgentGeneration {
+  id?: string
+  round_id: string
+  agent_type: 'observer' | 'action_story' | 'action_script' | 'action_praise'
+  input_context: Json
+  output_content: Json
+  model_version: string
+  safety_flags?: string[]
+  generation_time_ms?: number | null
+  tokens_used?: number | null
+  created_at?: string
+}
+
 // ==================== Database Schema ====================
 export interface Database {
   public: {
@@ -258,6 +312,11 @@ export interface Database {
         Row: ParentFeedback
         Insert: InsertParentFeedback
         Update: Partial<ParentFeedback>
+      }
+      agent_generations: {
+        Row: AgentGeneration
+        Insert: InsertAgentGeneration
+        Update: Partial<AgentGeneration>
       }
     }
   }

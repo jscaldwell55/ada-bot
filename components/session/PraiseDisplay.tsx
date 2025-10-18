@@ -71,7 +71,7 @@ export default function PraiseDisplay({
                 animationDuration: `${2 + Math.random() * 1}s`,
               }}
             >
-              {['<�', 'P', '(', '<', '=�'][Math.floor(Math.random() * 5)]}
+              {['⭐', '🎉', '🎊', '✨', '🌟'][Math.floor(Math.random() * 5)]}
             </div>
           ))}
         </div>
@@ -94,7 +94,7 @@ export default function PraiseDisplay({
               'text-8xl animate-bounce',
               isVisible && 'animation-delay-200'
             )}>
-              {badgeEmoji || 'P'}
+              {badgeEmoji || '🎉'}
             </div>
           </div>
 
@@ -116,7 +116,7 @@ export default function PraiseDisplay({
               <div className="p-4 bg-muted rounded-lg">
                 <div className="text-sm text-muted-foreground">Emotion Match</div>
                 <div className="text-2xl font-bold">
-                  {isCorrect ? '' : '�'}
+                  {isCorrect ? '✅' : '📚'}
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">
                   {isCorrect ? 'Correct!' : 'Keep practicing!'}

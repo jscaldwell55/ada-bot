@@ -64,7 +64,7 @@ export default function ReflectionPrompt({
       <Card>
         <CardHeader>
           <CardTitle className="text-center">
-            Let's check in! How are you feeling now?
+            Let&apos;s check in! How are you feeling now?
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -100,7 +100,7 @@ export default function ReflectionPrompt({
                 <div className="text-xs text-muted-foreground">Before</div>
                 <div className="text-2xl font-bold">{preIntensity}</div>
               </div>
-              <div className="text-2xl text-muted-foreground">’</div>
+              <div className="text-2xl text-muted-foreground">ï¿½</div>
               <div className="text-center">
                 <div className="text-xs text-muted-foreground">After</div>
                 <div className="text-2xl font-bold">{postIntensity}</div>

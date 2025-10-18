@@ -32,11 +32,7 @@ const nextConfig = {
     ignoreDuringBuilds: false,
   },
 
-  // Experimental features
-  experimental: {
-    // Enable Server Actions if needed
-    serverActions: true,
-  },
 }
+
 
 module.exports = nextConfig

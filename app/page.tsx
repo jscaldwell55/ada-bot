@@ -18,7 +18,7 @@ export default function HomePage() {
             <div className="text-8xl mb-4">🤖</div>
           </div>
           <h1 className="text-6xl font-bold text-primary mb-4">
-            Hi, I'm Ada!
+            Hi, I&apos;m Ada!
           </h1>
           <p className="text-2xl text-muted-foreground max-w-2xl mx-auto">
             Your friendly emotion learning companion
@@ -73,7 +73,7 @@ export default function HomePage() {
             <CardHeader>
               <CardTitle className="text-center text-2xl">For Parents</CardTitle>
               <CardDescription className="text-center">
-                Create an account to track your child's progress
+                Create an account to track your child&apos;s progress
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

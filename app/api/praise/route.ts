@@ -1,199 +1,111 @@
-/**
- * Praise Generation API Route
- * POST /api/praise - Generate personalized praise using OpenAI with safety checks
- */
-
 import { NextRequest, NextResponse } from 'next/server'
-import OpenAI from 'openai'
-import { generatePraiseSchema } from '@/lib/validation/schemas'
-import type { GeneratePraiseResponse } from '@/types/api'
+import { z } from 'zod'
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// Lenient schema with defaults - matches state machine output
+const praiseRequestSchema = z.object({
+  child_nickname: z.string().optional().default('friend'),
+  labeled_emotion: z.string(),
+  is_correct: z.boolean().optional().default(false),
+  pre_intensity: z.number().min(1).max(5).optional().default(3),
+  post_intensity: z.number().min(1).max(5).optional().default(3),
+  round_number: z.number().min(1).max(5).optional().default(1),
+  session_id: z.string().optional(),
+  round_id: z.string().optional(),
 })
 
-// Azure Content Safety endpoint (optional - add your endpoint if using)
-const AZURE_CONTENT_SAFETY_ENDPOINT = process.env.AZURE_CONTENT_SAFETY_ENDPOINT
-const AZURE_CONTENT_SAFETY_KEY = process.env.AZURE_CONTENT_SAFETY_KEY
+// Feature flag check
+const AGENT_PRAISE_ENABLED = process.env.NEXT_PUBLIC_ENABLE_ACTION_PRAISE === 'true'
 
 export async function POST(request: NextRequest) {
   try {
-    // Parse and validate request body
     const body = await request.json()
-    const validatedData = generatePraiseSchema.parse(body)
-
-    const {
-      child_nickname,
-      is_correct,
-      pre_intensity,
-      post_intensity,
-      round_number,
-      total_rounds,
-    } = validatedData
-
-    // Calculate intensity delta
-    const intensityDelta = post_intensity - pre_intensity
-    const improved = intensityDelta < 0
-
-    // Determine badge emoji based on performance
-    let badgeEmoji = 'P'
-    if (is_correct && improved) {
-      badgeEmoji = '<�'
-    } else if (is_correct) {
-      badgeEmoji = 'P'
-    } else if (improved) {
-      badgeEmoji = '<'
-    }
-
-    // Build context for the praise message
-    const isLastRound = round_number >= total_rounds
-    const correctnessContext = is_correct
-      ? 'correctly identified the emotion'
-      : 'worked hard on identifying the emotion'
-    const regulationContext = improved
-      ? `and did an amazing job bringing the feeling from ${pre_intensity} down to ${post_intensity}`
-      : `and practiced their regulation skills`
-
-    // Generate praise using OpenAI
-    const systemPrompt = `You are Ada, a supportive emotional learning companion for children ages 6-12.
-Generate warm, age-appropriate praise messages that celebrate effort and progress.
-
-Guidelines:
-- Use simple, encouraging language
-- Keep messages to 2-3 sentences
-- Be specific about what they did well
-- Never use scary or negative language
-- Focus on growth mindset and effort
-- Use the child's nickname naturally
-- Be genuinely enthusiastic but not over-the-top
-- Never mention mistakes directly, always frame positively`
-
-    const userPrompt = `Generate a praise message for ${child_nickname} who just completed round ${round_number} of ${total_rounds}. They ${correctnessContext} ${regulationContext}. ${
-      isLastRound
-        ? 'This is their last round - celebrate their completion of the whole session!'
-        : ''
-    }`
-
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      max_tokens: 100,
-      temperature: 0.8,
-      response_format: { type: 'json_object' },
-    })
-
-    const responseText = completion.choices[0].message.content || ''
-    let generatedMessage = ''
-
-    try {
-      const parsed = JSON.parse(responseText)
-      generatedMessage = parsed.message || parsed.praise || responseText
-    } catch {
-      // If not JSON, use the text directly
-      generatedMessage = responseText
-    }
-
-    // Fallback if generation failed
-    if (!generatedMessage || generatedMessage.length < 10) {
-      generatedMessage = `Amazing work, ${child_nickname}! You ${correctnessContext} and practiced your regulation skills. ${
-        isLastRound ? "You've completed all the rounds - fantastic job!" : "Keep up the great work!"
-      }`
-    }
-
-    // Safety check using Azure Content Safety (if configured)
-    let isSafe = true
-    if (AZURE_CONTENT_SAFETY_ENDPOINT && AZURE_CONTENT_SAFETY_KEY) {
+    
+    // Validate request with lenient schema
+    const validated = praiseRequestSchema.parse(body)
+    
+    // If agents are enabled and round_id is provided, use agent-based praise
+    if (AGENT_PRAISE_ENABLED && validated.round_id) {
       try {
-        isSafe = await checkContentSafety(generatedMessage)
-      } catch (error) {
-        console.error('Content safety check failed:', error)
-        // Default to safe if check fails
-        isSafe = true
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+        const agentResponse = await fetch(
+          `${baseUrl}/api/agent/generate-praise`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              child_nickname: validated.child_nickname,
+              labeled_emotion: validated.labeled_emotion,
+              is_correct: validated.is_correct,
+              pre_intensity: validated.pre_intensity,
+              post_intensity: validated.post_intensity,
+              intensity_delta: validated.post_intensity - validated.pre_intensity,
+              round_number: validated.round_number,
+              round_id: validated.round_id,
+            }),
+          }
+        )
+        
+        if (agentResponse.ok) {
+          const agentData = await agentResponse.json()
+          return NextResponse.json({
+            message: agentData.praise?.praise_message || agentData.praise_message,
+            badge_emoji: agentData.praise?.badge_emoji || '🎉',
+            is_safe: true,
+            agent_generated: true,
+          })
+        }
+        
+        // If agent fails, fall through to static praise
+        console.warn('Agent praise generation failed, using fallback')
+      } catch (agentError) {
+        console.warn('Agent praise error:', agentError)
+        // Fall through to static praise
       }
     }
-
-    // If unsafe, use a safe fallback message
-    const finalMessage = isSafe
-      ? generatedMessage
-      : `Great job, ${child_nickname}! You're learning so much about emotions!`
-
-    const response: GeneratePraiseResponse = {
-      message: finalMessage,
-      badge_emoji: badgeEmoji,
-      is_safe: isSafe,
+    
+    // Static praise generation (fallback or default)
+    const intensity_delta = validated.pre_intensity - validated.post_intensity
+    
+    let praiseMessage = ''
+    let badgeEmoji = '🎉'
+    
+    // Determine praise based on performance
+    if (intensity_delta >= 2) {
+      praiseMessage = `Amazing work, ${validated.child_nickname}! You did a great job calming down. Your body and mind are getting stronger at handling big feelings! 🌟`
+      badgeEmoji = '🏆'
+    } else if (intensity_delta >= 1) {
+      praiseMessage = `Great job, ${validated.child_nickname}! You helped yourself feel a little calmer. That takes practice and you're doing it! 💪`
+      badgeEmoji = '⭐'
+    } else if (intensity_delta === 0) {
+      praiseMessage = `Good try, ${validated.child_nickname}! Sometimes feelings stay big for a while, and that's okay. You practiced a helpful skill today! 🌈`
+      badgeEmoji = '✨'
+    } else {
+      praiseMessage = `Thank you for practicing, ${validated.child_nickname}! Learning about feelings is important, even when they feel tricky. You're doing great! ✨`
+      badgeEmoji = '🎉'
     }
-
-    return NextResponse.json(response, { status: 200 })
+    
+    // Add emotion-specific encouragement
+    if (validated.is_correct) {
+      praiseMessage += ` You recognized the feeling of ${validated.labeled_emotion} - that's a superpower!`
+    }
+    
+    return NextResponse.json({
+      message: praiseMessage,
+      badge_emoji: badgeEmoji,
+      is_safe: true,
+      fallback: !AGENT_PRAISE_ENABLED,
+    })
+    
   } catch (error) {
     console.error('Praise generation error:', error)
-
-    if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json(
-        {
-          error: 'validation_error',
-          message: 'Invalid request data',
-          details: error,
-        },
-        { status: 400 }
-      )
-    }
-
-    // Return fallback praise on error
-    return NextResponse.json(
-      {
-        message: 'Amazing work! You did a great job practicing your emotion skills!',
-        badge_emoji: 'P',
-        is_safe: true,
-      },
-      { status: 200 }
-    )
-  }
-}
-
-/**
- * Check content safety using Azure Content Safety API
- */
-async function checkContentSafety(text: string): Promise<boolean> {
-  if (!AZURE_CONTENT_SAFETY_ENDPOINT || !AZURE_CONTENT_SAFETY_KEY) {
-    return true
-  }
-
-  try {
-    const response = await fetch(
-      `${AZURE_CONTENT_SAFETY_ENDPOINT}/contentsafety/text:analyze?api-version=2023-10-01`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Ocp-Apim-Subscription-Key': AZURE_CONTENT_SAFETY_KEY,
-        },
-        body: JSON.stringify({
-          text,
-          categories: ['Hate', 'SelfHarm', 'Sexual', 'Violence'],
-          outputType: 'FourSeverityLevels',
-        }),
-      }
-    )
-
-    if (!response.ok) {
-      console.error('Azure Content Safety API error:', response.statusText)
-      return true // Default to safe if API fails
-    }
-
-    const result = await response.json()
-
-    // Check if any category has severity >= 2 (medium or high)
-    const hasUnsafeContent = result.categoriesAnalysis?.some(
-      (category: any) => category.severity >= 2
-    )
-
-    return !hasUnsafeContent
-  } catch (error) {
-    console.error('Content safety check error:', error)
-    return true // Default to safe if check fails
+    
+    // Return a generic encouraging message on any error
+    return NextResponse.json({
+      message: 'Great job practicing today! You\'re learning important skills about understanding feelings. Keep up the good work! 🌟',
+      badge_emoji: '🎉',
+      is_safe: true,
+      fallback: true,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    })
   }
 }

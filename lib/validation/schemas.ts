@@ -138,6 +138,129 @@ export const dateRangeSchema = z.object({
   end_date: z.string().datetime().optional(),
 })
 
+// ==================== Agent Schemas ====================
+
+// Observer Agent Schemas
+export const observerAgentInputSchema = z.object({
+  round_id: z.string().uuid(),
+  round_number: z.number().int().min(1).max(5),
+  story_text: z.string().min(1),
+  story_theme: z.string().min(1),
+  target_emotion: emotionLabelSchema,
+  labeled_emotion: emotionLabelSchema,
+  pre_intensity: intensityLevelSchema,
+  post_intensity: intensityLevelSchema,
+  script_name: z.string().min(1),
+  reflection_text: z.string().optional().nullable(),
+  previous_context: z.any().optional().nullable(), // JSONB from previous round
+})
+
+export const observerAgentOutputSchema = z.object({
+  round_id: z.string().uuid(),
+  story_theme: z.string(),
+  emotion_trajectory: z.object({
+    start: emotionLabelSchema,
+    end: emotionLabelSchema.nullable(),
+  }),
+  intensity_delta: z.number().int().min(-4).max(4),
+  regulation_effectiveness: z.enum(['high', 'medium', 'low']),
+  contextual_insights: z.array(z.string()),
+  recommended_next_theme: z.string(),
+  recommended_emotion_focus: emotionLabelSchema,
+  recommended_complexity: z.number().int().min(1).max(5),
+  confidence_score: z.number().min(0).max(1),
+})
+
+// Action Agent - Story Generation Schemas
+export const actionAgentStoryInputSchema = z.object({
+  child_id: z.string().uuid(),
+  session_id: z.string().uuid().optional(), // For logging purposes
+  age_band: ageBandSchema,
+  observer_summary: z.any().optional().nullable(), // ObserverAgentOutput
+  recommended_emotion: emotionLabelSchema.optional(),
+  recommended_theme: z.string().optional(),
+  recommended_complexity: z.number().int().min(1).max(5).optional(),
+  previous_successful_themes: z.array(z.string()).optional(),
+  round_number: z.number().int().min(1).max(5),
+})
+
+export const actionAgentStoryOutputSchema = z.object({
+  story_text: z.string().min(10).max(500), // 2-3 sentences
+  target_emotion: emotionLabelSchema,
+  theme: z.string(),
+  complexity_score: z.number().int().min(1).max(5),
+  contextual_tie: z.string().optional(),
+})
+
+// Action Agent - Script Generation Schemas
+export const actionAgentScriptInputSchema = z.object({
+  child_id: z.string().uuid(),
+  age_band: ageBandSchema,
+  labeled_emotion: emotionLabelSchema,
+  pre_intensity: intensityLevelSchema,
+  observer_insights: z.any().optional().nullable(), // ObserverAgentOutput
+  effective_scripts_history: z.array(z.string()).optional(),
+  round_number: z.number().int().min(1).max(5),
+})
+
+export const actionAgentScriptOutputSchema = z.object({
+  primary_script: z.object({
+    name: z.string(),
+    steps: z.array(z.string()).min(4).max(7),
+    duration_seconds: z.number().int().min(30).max(120),
+    adaptation_note: z.string(),
+  }),
+  alternative_scripts: z.array(
+    z.object({
+      name: z.string(),
+      brief_description: z.string(),
+    })
+  ).max(3),
+})
+
+// Action Agent - Praise Generation Schemas
+export const actionAgentPraiseInputSchema = z.object({
+  child_nickname: z.string().min(1).max(50),
+  age_band: ageBandSchema,
+  observer_analysis: z.any().optional().nullable(), // ObserverAgentOutput
+  labeled_emotion: emotionLabelSchema,
+  is_correct: z.boolean(),
+  pre_intensity: intensityLevelSchema,
+  post_intensity: intensityLevelSchema,
+  intensity_delta: z.number().int().min(-4).max(4),
+  script_used: z.string(),
+  round_number: z.number().int().min(1).max(5),
+  total_rounds: z.number().int().min(1).max(10).default(5),
+})
+
+export const actionAgentPraiseOutputSchema = z.object({
+  praise_message: z.string().min(10).max(500),
+  highlights: z.array(z.string()),
+  encouragement_focus: z.string(),
+  badge_emoji: z.string().optional(),
+})
+
+// Agent Generation Metadata Schema
+export const generationMetadataSchema = z.object({
+  agent_type: z.enum(['observer', 'action_story', 'action_script', 'action_praise']),
+  model_version: z.string(),
+  generation_timestamp: z.string().datetime(),
+  generation_time_ms: z.number().int().min(0),
+  tokens_used: z.number().int().min(0).optional(),
+  safety_flags: z.array(z.string()),
+  fallback_used: z.boolean(),
+  error_message: z.string().optional(),
+})
+
+// Safety Check Result Schema
+export const safetyCheckResultSchema = z.object({
+  passed: z.boolean(),
+  flags: z.array(z.string()),
+  toxicity_score: z.number().min(0).max(1).optional(),
+  keyword_violations: z.array(z.string()).optional(),
+  reason: z.string().optional(),
+})
+
 // ==================== Type Exports ====================
 export type CreateSessionInput = z.infer<typeof createSessionSchema>
 export type UpdateSessionInput = z.infer<typeof updateSessionSchema>
@@ -150,3 +273,15 @@ export type CreateChildInput = z.infer<typeof createChildSchema>
 export type UpdateChildInput = z.infer<typeof updateChildSchema>
 export type CreateSafetyAlertInput = z.infer<typeof createSafetyAlertSchema>
 export type CreateParentFeedbackInput = z.infer<typeof createParentFeedbackSchema>
+
+// Agent Type Exports
+export type ObserverAgentInput = z.infer<typeof observerAgentInputSchema>
+export type ObserverAgentOutput = z.infer<typeof observerAgentOutputSchema>
+export type ActionAgentStoryInput = z.infer<typeof actionAgentStoryInputSchema>
+export type ActionAgentStoryOutput = z.infer<typeof actionAgentStoryOutputSchema>
+export type ActionAgentScriptInput = z.infer<typeof actionAgentScriptInputSchema>
+export type ActionAgentScriptOutput = z.infer<typeof actionAgentScriptOutputSchema>
+export type ActionAgentPraiseInput = z.infer<typeof actionAgentPraiseInputSchema>
+export type ActionAgentPraiseOutput = z.infer<typeof actionAgentPraiseOutputSchema>
+export type GenerationMetadata = z.infer<typeof generationMetadataSchema>
+export type SafetyCheckResult = z.infer<typeof safetyCheckResultSchema>

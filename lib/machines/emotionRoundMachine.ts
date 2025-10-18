@@ -102,19 +102,32 @@ const generatePraise = fromPromise(
       totalRounds: number
     }
   }): Promise<{ message: string; badgeEmoji?: string }> => {
+    // Convert camelCase to snake_case to match API expectations
     const response = await fetch('/api/praise', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
+      body: JSON.stringify({
+        child_nickname: input.childNickname,
+        labeled_emotion: input.emotion,
+        is_correct: input.isCorrect,
+        pre_intensity: input.preIntensity,
+        post_intensity: input.postIntensity,
+        round_number: input.roundNumber,
+      }),
     })
 
     if (!response.ok) {
-      throw new Error('Failed to generate praise')
+      // Don't throw - use fallback praise instead
+      console.warn('Praise API failed, using fallback')
+      return {
+        message: `Great work, ${input.childNickname}! You're doing an amazing job learning about emotions! 🌟`,
+        badgeEmoji: '⭐',
+      }
     }
 
     const data = await response.json()
     return {
-      message: data.message,
+      message: data.praise_message || data.message,
       badgeEmoji: data.badge_emoji,
     }
   }
@@ -296,8 +309,8 @@ export const emotionRoundMachine = setup({
           target: 'praising',
           actions: assign({
             praiseMessage: ({ context }) =>
-              `Great work, ${context.childNickname}! You're doing an amazing job learning about emotions!`,
-            badgeEmoji: 'P',
+              `Great work, ${context.childNickname}! You're doing an amazing job learning about emotions! 🌟`,
+            badgeEmoji: '⭐',
             error: null,
           }),
         },

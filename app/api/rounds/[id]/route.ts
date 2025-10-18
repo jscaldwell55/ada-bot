@@ -101,6 +101,56 @@ export async function PATCH(
       )
     }
 
+    // If post_intensity is provided, round reflection is complete - call Observer Agent
+    if (validatedData.post_intensity && updatedRound.labeled_emotion && updatedRound.pre_intensity) {
+      try {
+        // Check if session has agents enabled
+        const { data: session } = await supabase
+          .from('sessions')
+          .select('agent_enabled, cumulative_context')
+          .eq('id', currentRound.session_id)
+          .single()
+
+        if (session?.agent_enabled !== false) {
+          // Get previous round's observer context for continuity
+          const { data: previousRounds } = await supabase
+            .from('emotion_rounds')
+            .select('observer_context, round_number')
+            .eq('session_id', currentRound.session_id)
+            .lt('round_number', updatedRound.round_number)
+            .order('round_number', { ascending: false })
+            .limit(1)
+
+          const previousContext = previousRounds?.[0]?.observer_context || null
+
+          // Call Observer Agent (non-blocking - we don't wait for response)
+          fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/agent/observe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              round_id: roundId,
+              round_number: updatedRound.round_number,
+              story_text: currentRound.story.text,
+              story_theme: currentRound.story.title,
+              target_emotion: currentRound.story.emotion,
+              labeled_emotion: updatedRound.labeled_emotion,
+              pre_intensity: updatedRound.pre_intensity,
+              post_intensity: validatedData.post_intensity,
+              script_name: updatedRound.regulation_script?.name || 'None',
+              reflection_text: null, // TODO: Add reflection text field if needed
+              previous_context: previousContext,
+            }),
+          }).catch((error) => {
+            // Log error but don't fail the round update
+            console.error('Observer Agent call failed (non-blocking):', error)
+          })
+        }
+      } catch (error) {
+        // Log error but don't fail the round update
+        console.error('Observer Agent integration error:', error)
+      }
+    }
+
     // If round is completed, update session completed_rounds count
     if (validatedData.completed_at) {
       const { data: session } = await supabase

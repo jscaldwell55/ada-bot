@@ -77,7 +77,7 @@ export default function ProgressIndicator({
         {currentRound === totalRounds && (
           <div className="text-center mt-4">
             <p className="text-sm font-semibold text-primary animate-pulse">
-              Last round! You're almost done! 🎉
+              Last round! You&apos;re almost done! 🎉
             </p>
           </div>
         )}

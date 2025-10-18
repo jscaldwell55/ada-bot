@@ -107,7 +107,7 @@ export default function ChildWelcomePage({
               <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-6 space-y-4">
                 <h3 className="font-semibold text-lg flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-yellow-500" />
-                  What we'll do today:
+                  What we&apos;ll do today:
                 </h3>
                 <ul className="space-y-2 ml-6">
                   <li className="flex items-start gap-2">
