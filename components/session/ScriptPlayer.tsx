@@ -2,54 +2,57 @@
 
 /**
  * Script Player Component
- * Step through regulation script with auto-advance and optional TTS
+ * Step through regulation script with auto-advance and Vapi voice
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import type { RegulationScript } from '@/types/database'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { Volume2, VolumeX, ChevronRight, ChevronLeft } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Volume2, Loader2 } from 'lucide-react'
+import { useVapi } from '@/lib/hooks/useVapi'
 
 interface ScriptPlayerProps {
   script: RegulationScript
   onComplete: () => void
   autoAdvance?: boolean
-  enableTTS?: boolean
 }
 
 export default function ScriptPlayer({
   script,
   onComplete,
   autoAdvance = true,
-  enableTTS = false,
 }: ScriptPlayerProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(true)
-  const [isTTSEnabled, setIsTTSEnabled] = useState(enableTTS)
   const [timeLeft, setTimeLeft] = useState(0)
+  const { speak, startSession, stopSession, isConnected, isSpeaking } = useVapi()
 
   const currentStep = script.steps[currentStepIndex]
   const isLastStep = currentStepIndex === script.steps.length - 1
   const progress = ((currentStepIndex + 1) / script.steps.length) * 100
 
-  // Text-to-Speech functionality
-  const speak = useCallback(
-    (text: string) => {
-      if (isTTSEnabled && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel() // Cancel any ongoing speech
+  // Start Vapi session when component mounts
+  useEffect(() => {
+    startSession().catch((err) => {
+      console.warn('[ScriptPlayer] Failed to start Vapi session:', err)
+    })
 
-        const utterance = new SpeechSynthesisUtterance(text)
-        utterance.rate = 0.9 // Slightly slower for children
-        utterance.pitch = 1.1 // Slightly higher pitch for friendly tone
-        utterance.volume = 1.0
+    // Cleanup: stop session on unmount
+    return () => {
+      stopSession().catch((err) => {
+        console.warn('[ScriptPlayer] Failed to stop session:', err)
+      })
+    }
+  }, [startSession, stopSession])
 
-        window.speechSynthesis.speak(utterance)
-      }
-    },
-    [isTTSEnabled]
-  )
+  // Speak current step when it changes
+  useEffect(() => {
+    if (isPlaying && isConnected && currentStep.text) {
+      speak(currentStep.text, { emotion: 'calm' })
+    }
+  }, [currentStepIndex, isPlaying, isConnected, currentStep.text, speak])
 
   // Auto-advance timer
   useEffect(() => {
@@ -80,12 +83,6 @@ export default function ScriptPlayer({
     }
   }, [currentStepIndex, autoAdvance, isPlaying, currentStep.duration_ms, isLastStep, onComplete])
 
-  // Speak current step when it changes
-  useEffect(() => {
-    if (isPlaying) {
-      speak(currentStep.text)
-    }
-  }, [currentStepIndex, isPlaying, currentStep.text, speak])
 
   const handleNext = () => {
     if (isLastStep) {
@@ -103,16 +100,6 @@ export default function ScriptPlayer({
 
   const handleTogglePause = () => {
     setIsPlaying((prev) => !prev)
-    if (isPlaying && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel()
-    }
-  }
-
-  const handleToggleTTS = () => {
-    setIsTTSEnabled((prev) => !prev)
-    if (isTTSEnabled && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel()
-    }
   }
 
   const timeLeftPercentage = (timeLeft / currentStep.duration_ms) * 100
@@ -122,24 +109,9 @@ export default function ScriptPlayer({
       {/* Header */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <span className="text-3xl">{script.icon_emoji}</span>
-              {script.name}
-            </span>
-            {/* TTS Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleToggleTTS}
-              aria-label={isTTSEnabled ? 'Disable voice' : 'Enable voice'}
-            >
-              {isTTSEnabled ? (
-                <Volume2 className="h-5 w-5" />
-              ) : (
-                <VolumeX className="h-5 w-5" />
-              )}
-            </Button>
+          <CardTitle className="flex items-center gap-2">
+            <span className="text-3xl">{script.icon_emoji}</span>
+            {script.name}
           </CardTitle>
         </CardHeader>
       </Card>
@@ -163,6 +135,22 @@ export default function ScriptPlayer({
           <p className="text-sm text-muted-foreground">
             Step {currentStepIndex + 1} of {script.steps.length}
           </p>
+
+          {/* Speaking Indicator */}
+          {isSpeaking && (
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground animate-pulse">
+              <Volume2 className="h-4 w-4" />
+              <span>Speaking...</span>
+            </div>
+          )}
+
+          {/* Connection Status */}
+          {!isConnected && (
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Connecting to voice...</span>
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -1,6 +1,6 @@
 # Ada Bot 🌟
 
-A safe, structured emotion recognition and regulation chatbot designed for neurodivergent children (ages 6-12). Ada helps children practice identifying emotions, rating their intensity, and learning self-regulation strategies through short, therapeutic story-based conversations.
+A safe, structured emotion recognition and regulation chatbot designed for neurodivergent children (ages 6-12). Ada helps children practice identifying emotions, rating their intensity, and learning self-regulation strategies through short, therapeutic story-based conversations with natural voice interaction.
 
 Ada was inspired by this paper: "Using Artificial Intelligence to Improve Empathetic Statements in Autistic Adolescents and Adults: A Randomized Clinical Trial". 
 https://www.researchgate.net/publication/389029249_Using_Artificial_Intelligence_to_Improve_Empathetic_Statements_in_Autistic_Adolescents_and_Adults_A_Randomized_Clinical_Trial
@@ -21,6 +21,7 @@ Ada provides a **closed-domain, AI-mediated micro-intervention** that:
 - **Teaches self-regulation** via evidence-based coping strategies (breathing exercises, grounding techniques, physical regulation)
 - **Reduces therapist load** by enabling consistent at-home practice between sessions
 - **Provides real-time, safe feedback** in a low-pressure, neurodiversity-affirming environment
+- **Delivers natural voice interaction** with child-friendly, emotionally expressive speech
 - **Tracks progress** with measurable outcomes (emotion accuracy, intensity delta, script completion)
 
 ### Not a Replacement for Therapy
@@ -39,8 +40,8 @@ Ada is a **practice companion and bridge** — between therapy sessions, between
 | **State Management** | XState v5 | Finite-state machine for predictable session flow |
 | **Database** | Supabase (PostgreSQL) | Real-time database, auth, Row Level Security |
 | **AI Agents** | OpenAI GPT-4 & GPT-4o-mini | **Observer Agent** (analysis) + **Action Agent** (content generation) |
+| **Voice Interaction** | Vapi | Real-time conversational AI with child-friendly voice |
 | **Content Safety** | Multi-layer pipeline | Crisis keywords, inappropriate content, pseudoscience detection |
-| **TTS (Optional)** | Web Speech API | Browser-native text-to-speech |
 
 ### Core Design Principles
 
@@ -51,20 +52,27 @@ Ada is a **practice companion and bridge** — between therapy sessions, between
    - Automatic fallback to clinician-vetted static content on any safety concern
    - See [Agent Architecture Documentation](./docs/AGENT_ARCHITECTURE.md) for details
 
-2. **Finite-State Machine (XState)**
+2. **Natural Voice Interaction** 🎙️
+   - **Vapi-powered speech**: Child-friendly voice reads stories, guides exercises, and delivers praise
+   - **Emotional expression**: Voice tone matches content (cheerful for happy stories, gentle for sad)
+   - **Dashboard control**: Voice settings, personality, and pacing controlled via Vapi dashboard
+   - **Accessible design**: Always shows text alongside voice, with manual play/pause controls
+   - **Graceful fallback**: Text-only mode if microphone permission denied or network issues
+
+3. **Finite-State Machine (XState)**
    - Session flow is **deterministic and predictable**
    - Clear state transitions: `greeting → story → emotion → intensity → regulation → script → reflection → praise`
    - No ambiguous states or infinite loops
    - Built-in error recovery and timeout handling
 
-3. **Safety-First**
+4. **Safety-First**
    - Crisis keyword detection on all child input
    - Parent notification system for safety alerts
    - Keyword-based safety checks on all inputs
    - No data stored in localStorage (COPPA compliance)
    - Row Level Security (RLS) enforces parent-child data boundaries
 
-4. **Neurodiversity-Affirming Design**
+5. **Neurodiversity-Affirming Design**
    - Predictable, consistent UI patterns
    - Optional low-sensory mode (reduced animations, muted colors)
    - Visual + text feedback for all interactions
@@ -122,10 +130,10 @@ ada-emotion-coach/
 │   │   ├── EmotionPicker.tsx  # Emotion selection grid
 │   │   ├── IntensitySlider.tsx # 1-5 rating
 │   │   ├── ScriptSelector.tsx # Choose regulation strategy
-│   │   ├── ScriptPlayer.tsx   # Guided practice playback
+│   │   ├── ScriptPlayer.tsx   # Guided practice playback (with voice)
 │   │   ├── ReflectionPrompt.tsx
-│   │   ├── PraiseDisplay.tsx
-│   │   ├── StoryDisplay.tsx
+│   │   ├── PraiseDisplay.tsx  # Praise display (with voice)
+│   │   ├── StoryDisplay.tsx   # Story display (with voice)
 │   │   └── ProgressIndicator.tsx
 │   │
 │   ├── dashboard/              # Parent dashboard components
@@ -154,21 +162,23 @@ ada-emotion-coach/
 │   ├── agents/                # 🆕 AI Agent configuration
 │   │   └── prompts.ts        # System prompts & model config
 │   │
-│   ├── machines/
-│   │   └── emotionRoundMachine.ts  # XState FSM
-│   │
 │   ├── services/              # Business logic
+│   │   ├── vapi.ts           # 🎙️ Vapi voice service
 │   │   ├── stories.ts        # Story fetching
 │   │   ├── scripts.ts        # Script recommendations
 │   │   ├── safety.ts         # Crisis detection
 │   │   ├── agentSafety.ts    # 🆕 Agent content safety pipeline
 │   │   └── analytics.ts      # Event tracking (placeholder)
 │   │
+│   ├── machines/
+│   │   └── emotionRoundMachine.ts  # XState FSM
+│   │
 │   ├── validation/
 │   │   └── schemas.ts        # Zod schemas
 │   │
 │   ├── hooks/
-│   │   └── useSession.ts     # Session management
+│   │   ├── useSession.ts     # Session management
+│   │   └── useVapi.ts        # 🎙️ Vapi voice hook
 │   │
 │   └── utils/
 │       ├── cn.ts             # Tailwind class merge
@@ -177,6 +187,7 @@ ada-emotion-coach/
 ├── types/
 │   ├── database.ts           # Database types (extended with agent columns)
 │   ├── agents.ts            # 🆕 Agent-specific types
+│   ├── vapi.ts              # 🎙️ Vapi-specific types
 │   ├── api.ts               # API types
 │   └── xstate.ts            # State machine types
 │
@@ -240,6 +251,13 @@ Ada uses a sophisticated **two-agent system** to provide personalized, context-a
 │  ✓ Length & structure validation                         │
 │  → Fallback to static content if ANY check fails         │
 └──────────────────────────────────────────────────────────┘
+                         ↓
+┌──────────────────────────────────────────────────────────┐
+│  Vapi Voice System 🎙️                                    │
+│  ↓ Reads: Stories, scripts, and praise with emotion      │
+│  ↓ Voice: Child-friendly, warm, naturally expressive     │
+│  → Text always visible alongside voice                    │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ### Agent Responsibilities
@@ -257,10 +275,17 @@ Ada uses a sophisticated **two-agent system** to provide personalized, context-a
 - 🎉 **Praise Generation**: Context-aware, growth-focused affirmations
 - **Models**: GPT-4 (stories/scripts) + GPT-4o-mini (praise)
 
+**Vapi Voice System (Speech Delivery)** 🎙️
+- 🗣️ **Natural Voice**: ElevenLabs-powered child-friendly voice (Rachel voice)
+- 😊 **Emotional Expression**: Tone matches content (happy = cheerful, sad = gentle)
+- 📱 **Dashboard Control**: All voice settings managed via Vapi dashboard
+- 🔊 **Accessible**: Always shows text, manual controls, graceful fallback
+
 ### Key Features
 
 ✅ **Adaptive Scaffolding**: Content difficulty adjusts to child's demonstrated skills
 ✅ **Therapeutic Continuity**: Each round builds on previous insights
+✅ **Natural Voice**: Child-friendly speech with appropriate emotional expression
 ✅ **Safety-First**: Multi-layer validation with automatic fallback
 ✅ **Neurodiversity-Affirming**: Celebrates diverse coping styles
 ✅ **Evidence-Based**: Grounded in CBT, DBT, and sensory integration
@@ -289,6 +314,45 @@ For complete technical details, see:
 
 ---
 
+## 🎙️ Voice Interaction with Vapi
+
+Ada uses **Vapi** for natural, child-friendly voice interaction throughout the therapeutic session.
+
+### How Voice Works
+
+**During Stories** 📖
+- "Read Story" button speaks the entire story with appropriate emotion
+- Voice tone matches story emotion (happy = cheerful, sad = gentle)
+- Text remains visible on screen for multimodal support
+
+**During Regulation Scripts** 🧘
+- Each step is read aloud as it appears
+- Calm, measured pacing guides child through the exercise
+- Natural pauses between instructions
+
+**During Praise** 🎉
+- Praise message auto-plays when displayed
+- Warm, encouraging tone celebrates child's effort
+- Visual celebration animations accompany voice
+
+### Voice Features
+
+✅ **Natural Expression**: ElevenLabs Rachel voice (child-friendly, warm)
+✅ **Emotional Range**: Voice matches content emotion
+✅ **Predictable Pacing**: Consistent speed with appropriate pauses
+✅ **Dashboard Control**: Adjust voice settings without code changes
+✅ **Always Accessible**: Text always visible, manual controls
+✅ **Graceful Fallback**: Text-only if permissions denied
+
+### Privacy & Permissions
+
+🔒 **Microphone Permission**: Required for Vapi to function (browser prompts on first use)
+🔒 **COPPA Compliant**: Vapi meets children's privacy requirements
+🔒 **Optional**: Voice can be disabled, text always available as fallback
+🔒 **No Recording**: Voice interaction is real-time, not recorded
+
+---
+
 ## 🔄 Session Flow (State Machine)
 
 Each session consists of **5 emotion rounds**. Each round follows this exact sequence:
@@ -306,7 +370,7 @@ Each session consists of **5 emotion rounds**. Each round follows this exact seq
                            ▼
                   ┌────────────────┐
                   │ PRESENTING     │
-                  │ STORY          │
+                  │ STORY          │  🎙️ Voice reads story
                   └────────┬───────┘
                            │
                            ▼
@@ -330,7 +394,7 @@ Each session consists of **5 emotion rounds**. Each round follows this exact seq
                            ▼
                   ┌────────────────┐
                   │ RUNNING        │
-                  │ SCRIPT         │  ← Step-through practice
+                  │ SCRIPT         │  🎙️ Voice guides steps
                   └────────┬───────┘
                            │
                            ▼
@@ -340,7 +404,7 @@ Each session consists of **5 emotion rounds**. Each round follows this exact seq
                            │
                            ▼
                   ┌────────────────┐
-                  │ PRAISING       │  ← LLM-generated praise
+                  │ PRAISING       │  🎙️ Voice delivers praise
                   └────────┬───────┘
                            │
                            ▼
@@ -546,6 +610,7 @@ All OpenAI API calls have configurable timeouts to prevent hanging sessions:
 - ✅ No localStorage/cookies (all state in memory)
 - ✅ Row Level Security enforces data boundaries
 - ✅ Minimal analytics (database-only tracking)
+- ✅ **Voice privacy**: Vapi is COPPA compliant, no voice recordings stored
 
 ### FERPA Considerations
 If deployed in schools:
@@ -566,6 +631,7 @@ If deployed in schools:
 | **Intensity Delta** | Pre-intensity - Post-intensity | ≥1 point reduction |
 | **Script Completion** | % of scripts completed | ≥80% |
 | **Session Completion** | % of sessions with 3+ rounds | ≥80% |
+| **Voice Engagement** | % of sessions using voice features | ≥70% |
 | **Parent Satisfaction** | Weekly survey (1-5 scale) | ≥4.0/5.0 |
 
 ### Data Collection
@@ -576,6 +642,7 @@ All analytics are stored in the Supabase database:
 - Session start/completion timestamps
 - Total rounds and completed rounds
 - Session duration
+- Voice feature usage
 
 **Round-level**:
 - Emotion labeling accuracy
@@ -592,6 +659,7 @@ All analytics are stored in the Supabase database:
 - Mean intensity delta ≥1.0
 - Emotion accuracy trending upward (60% → 75%)
 - Zero unhandled safety incidents
+- Voice engagement ≥70%
 - Parent satisfaction ≥4/5 stars
 
 ---
@@ -601,7 +669,8 @@ All analytics are stored in the Supabase database:
 ### Prerequisites
 - Node.js 18+ and npm/pnpm
 - Supabase account (free tier works)
-- OpenAI API key (for two-agent architecture: Observer Agent analysis, adaptive story/script generation, and personalized praise)
+- OpenAI API key (for two-agent architecture)
+- Vapi account (for voice interaction)
 
 ### Installation
 
@@ -633,22 +702,41 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
+**Note:** Voice features require microphone permission. The browser will prompt users on first use.
+
 ### Environment Variables
 
 Required variables:
 ```bash
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL=          # Your Supabase project URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY=     # Supabase anon key
 SUPABASE_SERVICE_ROLE_KEY=         # Supabase service role key (for API routes)
 
-# OpenAI API Key - Powers the entire two-agent architecture:
+# OpenAI API Key - Powers the two-agent architecture:
 # - Observer Agent: Emotional pattern analysis (GPT-4, 15s timeout)
 # - Action Agent: Adaptive story generation (GPT-4, 10s timeout)
 # - Action Agent: Script adaptation (GPT-4, 10s timeout)
 # - Action Agent: Personalized praise (GPT-4o-mini, 5s timeout)
 # Get your key from: https://platform.openai.com/api-keys
 OPENAI_API_KEY=                    # OpenAI API key
+
+# Vapi Voice Integration (public keys - safe to expose in browser)
+# Powers natural voice interaction for stories, scripts, and praise
+# Get your credentials from: https://dashboard.vapi.ai
+NEXT_PUBLIC_VAPI_API_KEY=          # Your Vapi public API key
+NEXT_PUBLIC_VAPI_ASSISTANT_ID=     # Your Vapi assistant ID
 ```
+
+### Vapi Assistant Configuration
+
+The Vapi assistant must be configured in your dashboard:
+
+1. Go to: https://dashboard.vapi.ai/assistants/[your-assistant-id]
+2. Set **Model**: GPT-4 Turbo
+3. Set **Voice**: ElevenLabs Rachel (child-friendly)
+4. Set **First Message Mode**: `assistant-speaks-first-with-model-generated-message`
+5. Configure the system prompt (see [Vapi Setup Guide](./docs/VAPI_SETUP.md) for complete prompt)
 
 ---
 
@@ -659,17 +747,21 @@ OPENAI_API_KEY=                    # OpenAI API key
 - Crisis keyword detection
 - Intensity delta calculations
 - Script recommendation algorithm
+- Vapi service integration
 
 ### Integration Tests
 - API routes (sessions, rounds, praise)
 - Database triggers (accuracy, delta)
 - Safety alert flow
 - Parent notification system
+- Voice session lifecycle
 
 ### E2E Tests (Playwright)
 - Complete session flow (5 rounds)
 - Emotion labeling accuracy
-- Script playback
+- Script playback with voice
+- Voice feature enable/disable
+- Microphone permission handling
 - Parent dashboard functionality
 
 ### Accessibility Testing
@@ -677,6 +769,7 @@ OPENAI_API_KEY=                    # OpenAI API key
 - Screen reader compatibility (NVDA, JAWS)
 - WCAG 2.1 AA compliance
 - Color contrast ratios
+- Voice + text multimodal support
 
 ---
 
@@ -710,6 +803,7 @@ CMD ["npm", "start"]
 - [ ] Database migrations applied
 - [ ] Content seeded (stories + scripts)
 - [ ] OpenAI API key set (with rate limits)
+- [ ] Vapi account configured with assistant
 - [ ] Environment variables configured
 - [ ] Custom domain configured (optional)
 - [ ] SSL certificate active
@@ -727,6 +821,7 @@ export const SESSION_CONFIG = {
   SESSION_TIMEOUT_MS: 15 * 60 * 1000,  // 15 minutes
   ROUND_TIMEOUT_MS: 5 * 60 * 1000,     // 5 minutes per round
   AUTO_PRAISE_THRESHOLD: 1,        // Delta ≥1 gets extra praise
+  ENABLE_VOICE_BY_DEFAULT: true,   // Voice features on by default
 };
 ```
 
@@ -751,32 +846,30 @@ export const SESSION_CONFIG = {
 
 ### October 2024 - Production-Ready Enhancements
 
-Three critical fixes have been implemented to ensure production readiness:
+#### **Vapi Voice Integration** 🎙️ **New**
+- **What Changed**: Replaced Web Speech API with Vapi for natural, emotionally expressive voice
+- **Impact**: Child-friendly voice reads stories, guides regulation exercises, and delivers praise
+- **Features**:
+  - ElevenLabs Rachel voice (warm, child-appropriate)
+  - Emotional tone matching (happy = cheerful, sad = gentle)
+  - Dashboard control (change voice settings without code changes)
+  - Graceful fallback to text-only if permissions denied
+- **Components**: StoryDisplay, ScriptPlayer, PraiseDisplay now voice-enabled
 
-#### 1. **Enhanced Toxicity Detection** ✅
-- **What Changed**: Added comprehensive toxic pattern detection with 40+ keywords across 5 categories (derogatory, dismissive, exclusionary, shaming, threatening)
-- **Impact**: Zero-tolerance policy for subtle harmful language that could bypass basic keyword filtering
+#### **Enhanced Toxicity Detection** ✅
+- **What Changed**: Added comprehensive toxic pattern detection with 40+ keywords across 5 categories
+- **Impact**: Zero-tolerance policy for subtle harmful language
 - **Location**: `lib/services/agentSafety.ts:203-270`
-- **Example Blocked Patterns**: "pathetic", "cry baby", "nobody wants", "should be ashamed"
 
-#### 2. **Fixed Agent Audit Trail** ✅
-- **What Changed**: Resolved `round_id` foreign key violations by deferring `agent_generations` table logging until after round creation
-- **Impact**: Complete audit trail for all AI generations without database constraint errors
-- **Location**: `app/api/rounds/route.ts:77-152`, all agent endpoints
-- **Technical Fix**: Story/script generation metadata now returned and logged after round ID is available
+#### **Fixed Agent Audit Trail** ✅
+- **What Changed**: Resolved `round_id` foreign key violations
+- **Impact**: Complete audit trail for all AI generations
+- **Location**: `app/api/rounds/route.ts:77-152`
 
-#### 3. **API Timeout Protection** ✅
-- **What Changed**: Added configurable timeout wrapper for all OpenAI API calls (5-15 seconds by operation type)
-- **Impact**: Prevents hanging sessions if OpenAI API is slow or unresponsive
-- **Location**: `lib/agents/openai-client.ts` (new file)
-- **Timeout Values**:
-  - Observer Agent: 15 seconds (complex analysis)
-  - Story Generation: 10 seconds (creative generation)
-  - Script Adaptation: 10 seconds (creative generation)
-  - Praise Generation: 5 seconds (simple generation)
-- **Fallback Behavior**: Graceful degradation to static content on timeout
-
-For complete technical details, see [FIXES_APPLIED.md](./FIXES_APPLIED.md).
+#### **API Timeout Protection** ✅
+- **What Changed**: Added configurable timeout wrapper for all OpenAI API calls
+- **Impact**: Prevents hanging sessions if APIs are slow
+- **Location**: `lib/agents/openai-client.ts`
 
 ---
 
@@ -788,49 +881,39 @@ For complete technical details, see [FIXES_APPLIED.md](./FIXES_APPLIED.md).
 - [x] Self-regulation scripts
 - [x] Parent dashboard
 - [x] Safety monitoring
-- [x] **Two-Agent Adaptive Architecture** 🆕
-  - [x] Observer Agent (emotional pattern analysis)
-  - [x] Action Agent (adaptive story generation)
-  - [x] Action Agent (personalized praise)
-  - [x] Multi-layer safety pipeline
-  - [x] Feature flags for A/B testing
-- [x] **Production-Ready Enhancements** 🆕
-  - [x] Enhanced toxicity detection (40+ patterns)
-  - [x] Fixed agent audit trail (no foreign key violations)
-  - [x] API timeout protection (5-15s by operation type)
+- [x] **Two-Agent Adaptive Architecture**
+- [x] **Vapi Voice Integration** 🎙️
+- [x] **Production-Ready Enhancements**
 - [ ] Beta testing with 20 families
 
 ### Phase 2: Enhancement (3 months)
+- [ ] **Voice Enhancement**
+  - [ ] Voice-based emotion selection (speak instead of click)
+  - [ ] Voice-based intensity rating
+  - [ ] Parent voice preference settings
 - [ ] **Agent Architecture Expansion**
-  - [ ] Complete Action Agent script adaptation (currently using static)
-  - [ ] Multi-session context (track child across sessions)
+  - [ ] Complete Action Agent script adaptation
+  - [ ] Multi-session context tracking
   - [ ] Parent dashboard showing Observer insights
-  - [ ] Automated therapeutic recommendations
-- [ ] Spanish language support
+- [ ] Spanish language support (voice + text)
 - [ ] Progress visualization (charts)
 - [ ] Parent weekly reports (email)
-- [ ] Therapist portal (view multiple children)
-- [ ] Export data for clinical review
+- [ ] Therapist portal
 
 ### Phase 3: Expansion (6 months)
-- [ ] **Empathy Coach** module (perspective-taking)
+- [ ] **Empathy Coach** module with conversational practice
 - [ ] **Conversation Coach** (turn-taking, topic maintenance)
 - [ ] **Calm Cloud** (sensory regulation, mindfulness)
-- [ ] **Executive Function Helper** (routine planning)
 - [ ] Mobile apps (iOS, Android)
 - [ ] Offline mode support
 
 ### Phase 4: Research (12 months)
-- [ ] **Agent Architecture Efficacy Study**
-  - [ ] Randomized controlled trial: Agent vs Static content (n=100)
-  - [ ] Measure: Emotion accuracy, regulation effectiveness, engagement
-  - [ ] Clinician review of Observer insights for validity
-  - [ ] Cost-benefit analysis (token usage vs therapeutic gain)
+- [ ] Voice interaction efficacy study
+- [ ] Agent architecture efficacy study
 - [ ] NIH SBIR grant application
 - [ ] Pilot study (n=100 children, 8 weeks)
-- [ ] Peer-reviewed publication on adaptive AI in child therapy
+- [ ] Peer-reviewed publication
 - [ ] Partnership with autism clinics
-- [ ] Integration with EHR systems
 
 ---
 
@@ -844,20 +927,22 @@ We welcome contributions from developers, clinicians, researchers, and educators
 3. **Testing**: Add tests for new features
 4. **Accessibility**: Ensure WCAG 2.1 AA compliance
 5. **Safety**: Never bypass content safety checks
+6. **Voice**: Test with both voice enabled and disabled
 
 ### Adding New Content
 **Stories**:
 1. Write story (2-3 sentences, age-appropriate)
 2. Tag with emotion, scenario, intensity
 3. Clinical review required
-4. Add to `content/stories.json`
-5. Run seed script
+4. Test with voice reading
+5. Add to `content/stories.json`
+6. Run seed script
 
 **Regulation Scripts**:
 1. Evidence-based strategy only
 2. Clear step-by-step instructions
-3. Appropriate timing (duration_ms)
-4. Test with children
+3. Test with voice guidance
+4. Appropriate timing (duration_ms)
 5. Add to `content/scripts.json`
 
 ### Pull Request Process
@@ -882,6 +967,7 @@ We welcome contributions from developers, clinicians, researchers, and educators
 - [Supabase Docs](https://supabase.com/docs)
 - [Next.js App Router](https://nextjs.org/docs/app)
 - [shadcn/ui Components](https://ui.shadcn.com/)
+- [Vapi Documentation](https://docs.vapi.ai/)
 - [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
 
 ### Research Partners
@@ -904,7 +990,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Inspired by evidence-based emotion regulation interventions
 - Built with insights from OT/SLP professionals, autism specialists, and neurodivergent families
-- Special thanks to the open-source community (Next.js, Supabase, XState, shadcn/ui)
+- Special thanks to the open-source community (Next.js, Supabase, XState, shadcn/ui, Vapi)
 
 ---
 

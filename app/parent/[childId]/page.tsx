@@ -5,6 +5,9 @@
 
 'use client'
 
+// Force dynamic rendering for this page (prevents static generation issues)
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'

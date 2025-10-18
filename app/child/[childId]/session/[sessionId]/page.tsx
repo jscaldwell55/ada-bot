@@ -5,6 +5,9 @@
 
 'use client'
 
+// Force dynamic rendering for this page (prevents static generation issues)
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSupabase } from '@/components/providers/SupabaseProvider'
