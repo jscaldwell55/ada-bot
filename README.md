@@ -40,7 +40,7 @@ Ada is a **practice companion and bridge** — between therapy sessions, between
 | **State Management** | XState v5 | Finite-state machine for predictable session flow |
 | **Database** | Supabase (PostgreSQL) | Real-time database, auth, Row Level Security |
 | **AI Agents** | OpenAI GPT-4 & GPT-4o-mini | **Observer Agent** (analysis) + **Action Agent** (content generation) |
-| **Voice Interaction** | Vapi | Real-time conversational AI with child-friendly voice |
+| **Voice Interaction** | ElevenLabs API | Natural text-to-speech with child-friendly voice |
 | **Content Safety** | Multi-layer pipeline | Crisis keywords, inappropriate content, pseudoscience detection |
 
 ### Core Design Principles
@@ -53,11 +53,11 @@ Ada is a **practice companion and bridge** — between therapy sessions, between
    - See [Agent Architecture Documentation](./docs/AGENT_ARCHITECTURE.md) for details
 
 2. **Natural Voice Interaction** 🎙️
-   - **Vapi-powered speech**: Child-friendly voice reads stories, guides exercises, and delivers praise
-   - **Emotional expression**: Voice tone matches content (cheerful for happy stories, gentle for sad)
-   - **Dashboard control**: Voice settings, personality, and pacing controlled via Vapi dashboard
+   - **ElevenLabs-powered speech**: Child-friendly voice reads stories, guides exercises, and delivers praise
+   - **Emotional expression**: High-quality, natural-sounding voice optimized for children
+   - **Simple integration**: Server-side API calls keep API keys secure
    - **Accessible design**: Always shows text alongside voice, with manual play/pause controls
-   - **Graceful fallback**: Text-only mode if microphone permission denied or network issues
+   - **Graceful fallback**: Automatic Web Speech API fallback if ElevenLabs unavailable
 
 3. **Finite-State Machine (XState)**
    - Session flow is **deterministic and predictable**
@@ -95,13 +95,17 @@ ada-emotion-coach/
 │   │   │   ├── route.ts        # POST /api/sessions (create)
 │   │   │   └── [id]/route.ts   # GET /api/sessions/:id
 │   │   ├── rounds/
-│   │   │   ├── route.ts        # POST /api/rounds (create)
-│   │   │   └── [id]/route.ts   # PATCH /api/rounds/:id (update)
+│   │   │   └── route.ts        # POST /api/rounds (create + update)
 │   │   ├── agent/              # 🆕 AI Agent endpoints
 │   │   │   ├── observe/route.ts           # Observer Agent analysis
 │   │   │   ├── generate-story/route.ts    # Adaptive story generation
 │   │   │   ├── generate-script/route.ts   # Personalized scripts
 │   │   │   └── generate-praise/route.ts   # Context-aware praise
+│   │   ├── admin/              # 🆕 Admin endpoints
+│   │   │   └── agent-logs/
+│   │   │       ├── route.ts    # GET agent generation logs
+│   │   │       └── export/route.ts  # Export logs to CSV
+│   │   ├── elevenlabs-tts/route.ts      # 🎙️ ElevenLabs TTS endpoint
 │   │   ├── scripts/recommended/route.ts  # GET recommended scripts
 │   │   ├── praise/route.ts     # POST /api/praise (routes to agents)
 │   │   └── safety/route.ts     # POST /api/safety (crisis check)
@@ -109,8 +113,12 @@ ada-emotion-coach/
 │   ├── auth/                    # Authentication routes
 │   │   ├── login/page.tsx      # Login page
 │   │   ├── signup/page.tsx     # Sign up page
+│   │   ├── reset-password/page.tsx  # Password reset
 │   │   ├── callback/route.ts   # OAuth callback
 │   │   └── logout/route.ts     # Logout handler
+│   │
+│   ├── admin/                   # 🆕 Admin panel
+│   │   └── agent-logs/page.tsx  # Agent generation viewer & analytics
 │   │
 │   ├── child/[childId]/         # Child-facing routes
 │   │   ├── page.tsx            # Welcome screen
@@ -142,33 +150,41 @@ ada-emotion-coach/
 │   │   ├── SessionHistory.tsx
 │   │   └── SafetyAlerts.tsx
 │   │
+│   ├── admin/                  # 🆕 Admin components
+│   │   └── AgentLogsDashboard.tsx  # Agent logs viewer & analytics
+│   │
 │   ├── ui/                     # shadcn/ui components
 │   │   ├── button.tsx
 │   │   ├── card.tsx
 │   │   ├── dialog.tsx
 │   │   ├── slider.tsx
-│   │   └── progress.tsx
+│   │   ├── progress.tsx
+│   │   ├── badge.tsx
+│   │   └── table.tsx
 │   │
 │   └── providers/
-│       └── SupabaseProvider.tsx
+│       ├── SupabaseProvider.tsx
+│       └── PostHogProvider.tsx  # 🆕 Analytics provider
 │
 ├── lib/
 │   ├── supabase/
 │   │   ├── client.ts          # Browser client
 │   │   ├── server.ts          # Server client (API routes)
-│   │   ├── middleware.ts      # Auth middleware (placeholder)
+│   │   ├── middleware.ts      # Auth middleware
 │   │   └── auth-helpers.ts    # Auth helper functions
 │   │
 │   ├── agents/                # 🆕 AI Agent configuration
-│   │   └── prompts.ts        # System prompts & model config
+│   │   ├── prompts.ts        # System prompts & model config
+│   │   └── openai-client.ts  # 🆕 OpenAI client with timeout wrapper
 │   │
 │   ├── services/              # Business logic
-│   │   ├── vapi.ts           # 🎙️ Vapi voice service
+│   │   ├── elevenLabsTTS.ts  # 🎙️ ElevenLabs TTS service
 │   │   ├── stories.ts        # Story fetching
 │   │   ├── scripts.ts        # Script recommendations
 │   │   ├── safety.ts         # Crisis detection
 │   │   ├── agentSafety.ts    # 🆕 Agent content safety pipeline
-│   │   └── analytics.ts      # Event tracking (placeholder)
+│   │   ├── agentLogger.ts    # 🆕 Agent audit trail logging
+│   │   └── analytics.ts      # Event tracking
 │   │
 │   ├── machines/
 │   │   └── emotionRoundMachine.ts  # XState FSM
@@ -178,16 +194,17 @@ ada-emotion-coach/
 │   │
 │   ├── hooks/
 │   │   ├── useSession.ts     # Session management
-│   │   └── useVapi.ts        # 🎙️ Vapi voice hook
+│   │   └── useElevenLabsTTS.ts  # 🎙️ ElevenLabs TTS hook
 │   │
 │   └── utils/
+│       ├── utils.ts          # General utilities
 │       ├── cn.ts             # Tailwind class merge
 │       └── constants.ts      # App constants
 │
 ├── types/
-│   ├── database.ts           # Database types (extended with agent columns)
+│   ├── database.types.ts    # Supabase auto-generated types
+│   ├── database.ts          # Database types (extended with agent columns)
 │   ├── agents.ts            # 🆕 Agent-specific types
-│   ├── vapi.ts              # 🎙️ Vapi-specific types
 │   ├── api.ts               # API types
 │   └── xstate.ts            # State machine types
 │
@@ -199,22 +216,36 @@ ada-emotion-coach/
 ├── supabase/
 │   ├── migrations/
 │   │   ├── 20241017000001_initial_schema.sql
-│   │   └── 20241017000002_add_agent_architecture.sql  # 🆕
-│   └── seed.sql
+│   │   ├── 20241017000002_add_agent_architecture.sql
+│   │   └── 20251018150019_add_metadata_to_agent_generations.sql
+│   ├── config.toml            # Supabase configuration
+│   └── seed.sql               # Database seeding script
 │
-├── docs/                      # 🆕 Documentation
-│   └── AGENT_ARCHITECTURE.md  # Complete agent system guide
+├── docs/                      # Documentation
+│   ├── AGENT_ARCHITECTURE.md  # Complete agent system guide
+│   └── VAPI_SETUP.md         # Legacy Vapi setup (deprecated)
 │
 ├── public/
-│   ├── sounds/              # Optional sound effects
+│   ├── sounds/              # Sound effects
 │   └── avatars/             # Avatar emoji images
 │
-├── .env.local               # Environment variables
-├── .env.example             # Template
-├── next.config.js
-├── tailwind.config.ts
-├── tsconfig.json
-└── package.json
+├── .env.local               # Environment variables (not in repo)
+├── .env.example             # Environment template
+├── .eslintrc.json           # ESLint configuration
+├── .gitignore               # Git ignore rules
+├── next.config.js           # Next.js configuration
+├── next-env.d.ts            # Next.js TypeScript declarations
+├── tailwind.config.ts       # Tailwind CSS configuration
+├── tsconfig.json            # TypeScript configuration
+├── package.json             # Dependencies
+├── package-lock.json        # Dependency lock file
+├── verify-scripts.ts        # Script verification utility
+│
+├── AGENT_AUDIT_REPORT.md    # Agent system audit findings
+├── AGENT_ERRORS_FIXED.md    # Agent error resolution log
+├── AGENT_SYSTEM_FIXES.md    # Agent system improvements
+├── ELEVENLABS_MIGRATION_COMPLETE.md  # ElevenLabs migration notes
+└── FIXES_APPLIED.md         # General fixes log
 ```
 
 ---
@@ -253,9 +284,9 @@ Ada uses a sophisticated **two-agent system** to provide personalized, context-a
 └──────────────────────────────────────────────────────────┘
                          ↓
 ┌──────────────────────────────────────────────────────────┐
-│  Vapi Voice System 🎙️                                    │
-│  ↓ Reads: Stories, scripts, and praise with emotion      │
-│  ↓ Voice: Child-friendly, warm, naturally expressive     │
+│  ElevenLabs Voice System 🎙️                              │
+│  ↓ Reads: Stories, scripts, and praise                   │
+│  ↓ Voice: Child-friendly, natural, high-quality          │
 │  → Text always visible alongside voice                    │
 └──────────────────────────────────────────────────────────┘
 ```
@@ -275,11 +306,11 @@ Ada uses a sophisticated **two-agent system** to provide personalized, context-a
 - 🎉 **Praise Generation**: Context-aware, growth-focused affirmations
 - **Models**: GPT-4 (stories/scripts) + GPT-4o-mini (praise)
 
-**Vapi Voice System (Speech Delivery)** 🎙️
-- 🗣️ **Natural Voice**: ElevenLabs-powered child-friendly voice (Rachel voice)
-- 😊 **Emotional Expression**: Tone matches content (happy = cheerful, sad = gentle)
-- 📱 **Dashboard Control**: All voice settings managed via Vapi dashboard
-- 🔊 **Accessible**: Always shows text, manual controls, graceful fallback
+**ElevenLabs Voice System (Speech Delivery)** 🎙️
+- 🗣️ **Natural Voice**: High-quality child-friendly voice (Sarah voice)
+- 😊 **Emotional Expression**: Natural-sounding voice optimized for children
+- 🔒 **Secure**: Server-side API integration keeps keys secure
+- 🔊 **Accessible**: Always shows text, manual controls, Web Speech API fallback
 
 ### Key Features
 
@@ -314,42 +345,56 @@ For complete technical details, see:
 
 ---
 
-## 🎙️ Voice Interaction with Vapi
+## 🎙️ Voice Interaction with ElevenLabs
 
-Ada uses **Vapi** for natural, child-friendly voice interaction throughout the therapeutic session.
+Ada uses **ElevenLabs** text-to-speech API for natural, child-friendly voice interaction throughout the therapeutic session.
 
 ### How Voice Works
 
 **During Stories** 📖
-- "Read Story" button speaks the entire story with appropriate emotion
-- Voice tone matches story emotion (happy = cheerful, sad = gentle)
+- "Read Story Aloud" button speaks the entire story
+- High-quality, natural-sounding voice reads with clear pronunciation
 - Text remains visible on screen for multimodal support
+- Stop button available to interrupt playback
 
 **During Regulation Scripts** 🧘
 - Each step is read aloud as it appears
 - Calm, measured pacing guides child through the exercise
-- Natural pauses between instructions
+- Natural pauses between instructions for practicing
 
 **During Praise** 🎉
 - Praise message auto-plays when displayed
-- Warm, encouraging tone celebrates child's effort
+- Warm, encouraging voice celebrates child's effort
 - Visual celebration animations accompany voice
 
 ### Voice Features
 
-✅ **Natural Expression**: ElevenLabs Rachel voice (child-friendly, warm)
-✅ **Emotional Range**: Voice matches content emotion
-✅ **Predictable Pacing**: Consistent speed with appropriate pauses
-✅ **Dashboard Control**: Adjust voice settings without code changes
-✅ **Always Accessible**: Text always visible, manual controls
-✅ **Graceful Fallback**: Text-only if permissions denied
+✅ **Natural Voice**: ElevenLabs Sarah voice (child-friendly, warm, clear)
+✅ **High Quality**: Advanced AI voice synthesis for natural pronunciation
+✅ **Secure**: Server-side API integration keeps API keys safe
+✅ **Simple**: Base64 audio streaming, no complex WebSocket management
+✅ **Always Accessible**: Text always visible, manual play/stop controls
+✅ **Graceful Fallback**: Automatic Web Speech API fallback if ElevenLabs unavailable
 
-### Privacy & Permissions
+### Technical Implementation
 
-🔒 **Microphone Permission**: Required for Vapi to function (browser prompts on first use)
-🔒 **COPPA Compliant**: Vapi meets children's privacy requirements
-🔒 **Optional**: Voice can be disabled, text always available as fallback
-🔒 **No Recording**: Voice interaction is real-time, not recorded
+**Server-Side Processing** 🔒
+- API route at `/api/elevenlabs-tts` handles all ElevenLabs calls
+- API key never exposed to client
+- Configurable voice settings (stability, similarity, style)
+
+**Client Integration**
+- `useElevenLabsTTS` hook provides simple speak/stop interface
+- Automatic fallback to Web Speech API if server TTS fails
+- Visual indicators show speaking state
+
+### Privacy & Cost
+
+🔒 **No Microphone**: Read-only, no voice input required
+🔒 **COPPA Compliant**: ElevenLabs meets children's privacy requirements
+🔒 **No Recording**: Audio generated on-demand, not stored
+💰 **Free Tier**: 10,000 characters/month (~11 sessions)
+💰 **Affordable**: $5/month for 30,000 characters if needed
 
 ---
 
@@ -610,7 +655,7 @@ All OpenAI API calls have configurable timeouts to prevent hanging sessions:
 - ✅ No localStorage/cookies (all state in memory)
 - ✅ Row Level Security enforces data boundaries
 - ✅ Minimal analytics (database-only tracking)
-- ✅ **Voice privacy**: Vapi is COPPA compliant, no voice recordings stored
+- ✅ **Voice privacy**: ElevenLabs is COPPA compliant, no voice recordings stored
 
 ### FERPA Considerations
 If deployed in schools:
@@ -670,7 +715,7 @@ All analytics are stored in the Supabase database:
 - Node.js 18+ and npm/pnpm
 - Supabase account (free tier works)
 - OpenAI API key (for two-agent architecture)
-- Vapi account (for voice interaction)
+- ElevenLabs account (for voice interaction - free tier available)
 
 ### Installation
 
@@ -702,7 +747,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
-**Note:** Voice features require microphone permission. The browser will prompt users on first use.
+**Note:** Voice features require a valid `ELEVENLABS_API_KEY` in `.env.local`. If not configured, the system automatically falls back to Web Speech API.
 
 ### Environment Variables
 
@@ -721,22 +766,25 @@ SUPABASE_SERVICE_ROLE_KEY=         # Supabase service role key (for API routes)
 # Get your key from: https://platform.openai.com/api-keys
 OPENAI_API_KEY=                    # OpenAI API key
 
-# Vapi Voice Integration (public keys - safe to expose in browser)
+# ElevenLabs TTS Integration
 # Powers natural voice interaction for stories, scripts, and praise
-# Get your credentials from: https://dashboard.vapi.ai
-NEXT_PUBLIC_VAPI_API_KEY=          # Your Vapi public API key
-NEXT_PUBLIC_VAPI_ASSISTANT_ID=     # Your Vapi assistant ID
+# Get your API key from: https://elevenlabs.io/app/settings/api-keys
+# Free tier includes 10,000 characters/month (~11 sessions)
+ELEVENLABS_API_KEY=                # Your ElevenLabs API key
 ```
 
-### Vapi Assistant Configuration
+### ElevenLabs Voice Configuration
 
-The Vapi assistant must be configured in your dashboard:
+The ElevenLabs integration is pre-configured with optimal settings:
 
-1. Go to: https://dashboard.vapi.ai/assistants/[your-assistant-id]
-2. Set **Model**: GPT-4 Turbo
-3. Set **Voice**: ElevenLabs Rachel (child-friendly)
-4. Set **First Message Mode**: `assistant-speaks-first-with-model-generated-message`
-5. Configure the system prompt (see [Vapi Setup Guide](./docs/VAPI_SETUP.md) for complete prompt)
+1. **Voice**: Sarah (`EXAVITQu4vr4xnSDxMaL`) - child-friendly, warm, clear
+2. **Model**: `eleven_turbo_v2_5` - fast, high-quality synthesis
+3. **Settings**: Stability 0.5, Similarity 0.75, Style 0.4
+4. **Get API Key**:
+   - Sign up at https://elevenlabs.io/
+   - Navigate to https://elevenlabs.io/app/settings/api-keys
+   - Create new API key and add to `.env.local`
+5. **Monitor Usage**: Check at https://elevenlabs.io/app/usage
 
 ---
 
@@ -747,7 +795,7 @@ The Vapi assistant must be configured in your dashboard:
 - Crisis keyword detection
 - Intensity delta calculations
 - Script recommendation algorithm
-- Vapi service integration
+- ElevenLabs TTS service integration
 
 ### Integration Tests
 - API routes (sessions, rounds, praise)
@@ -761,7 +809,8 @@ The Vapi assistant must be configured in your dashboard:
 - Emotion labeling accuracy
 - Script playback with voice
 - Voice feature enable/disable
-- Microphone permission handling
+- ElevenLabs API integration
+- Web Speech API fallback behavior
 - Parent dashboard functionality
 
 ### Accessibility Testing
@@ -803,7 +852,7 @@ CMD ["npm", "start"]
 - [ ] Database migrations applied
 - [ ] Content seeded (stories + scripts)
 - [ ] OpenAI API key set (with rate limits)
-- [ ] Vapi account configured with assistant
+- [ ] ElevenLabs API key configured
 - [ ] Environment variables configured
 - [ ] Custom domain configured (optional)
 - [ ] SSL certificate active
@@ -844,17 +893,19 @@ export const SESSION_CONFIG = {
 
 ## 🆕 Recent Updates
 
-### October 2024 - Production-Ready Enhancements
+### October 2025 - ElevenLabs Migration
 
-#### **Vapi Voice Integration** 🎙️ **New**
-- **What Changed**: Replaced Web Speech API with Vapi for natural, emotionally expressive voice
-- **Impact**: Child-friendly voice reads stories, guides regulation exercises, and delivers praise
+#### **ElevenLabs Voice Integration** 🎙️ **New**
+- **What Changed**: Migrated from Vapi to ElevenLabs TTS for simpler, more reliable voice interaction
+- **Impact**: High-quality, child-friendly voice reads stories, guides regulation exercises, and delivers praise
 - **Features**:
-  - ElevenLabs Rachel voice (warm, child-appropriate)
-  - Emotional tone matching (happy = cheerful, sad = gentle)
-  - Dashboard control (change voice settings without code changes)
-  - Graceful fallback to text-only if permissions denied
-- **Components**: StoryDisplay, ScriptPlayer, PraiseDisplay now voice-enabled
+  - ElevenLabs Sarah voice (warm, child-appropriate, natural)
+  - Server-side API integration (secure API key management)
+  - Base64 audio streaming (simple, no WebSocket complexity)
+  - Automatic Web Speech API fallback (no single point of failure)
+  - Lower cost (free tier sufficient for development/testing)
+- **Components**: StoryDisplay, ScriptPlayer, PraiseDisplay use `useElevenLabsTTS` hook
+- **Migration Details**: See [ELEVENLABS_MIGRATION_COMPLETE.md](./ELEVENLABS_MIGRATION_COMPLETE.md)
 
 #### **Enhanced Toxicity Detection** ✅
 - **What Changed**: Added comprehensive toxic pattern detection with 40+ keywords across 5 categories
@@ -882,15 +933,15 @@ export const SESSION_CONFIG = {
 - [x] Parent dashboard
 - [x] Safety monitoring
 - [x] **Two-Agent Adaptive Architecture**
-- [x] **Vapi Voice Integration** 🎙️
+- [x] **ElevenLabs Voice Integration** 🎙️
 - [x] **Production-Ready Enhancements**
 - [ ] Beta testing with 20 families
 
 ### Phase 2: Enhancement (3 months)
 - [ ] **Voice Enhancement**
-  - [ ] Voice-based emotion selection (speak instead of click)
-  - [ ] Voice-based intensity rating
-  - [ ] Parent voice preference settings
+  - [ ] Multiple ElevenLabs voice options (voice preferences)
+  - [ ] Emotion-aware voice modulation
+  - [ ] Parent voice settings in dashboard
 - [ ] **Agent Architecture Expansion**
   - [ ] Complete Action Agent script adaptation
   - [ ] Multi-session context tracking
@@ -967,45 +1018,6 @@ We welcome contributions from developers, clinicians, researchers, and educators
 - [Supabase Docs](https://supabase.com/docs)
 - [Next.js App Router](https://nextjs.org/docs/app)
 - [shadcn/ui Components](https://ui.shadcn.com/)
-- [Vapi Documentation](https://docs.vapi.ai/)
+- [ElevenLabs Documentation](https://elevenlabs.io/docs/)
 - [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
 
-### Research Partners
-- Autism research centers
-- University OT/SLP programs
-- School SEL programs
-- Pediatric psychology clinics
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-**Important**: While the code is open source, clinical content (stories and scripts) should be used responsibly and only in therapeutic or educational contexts.
-
----
-
-## 🙏 Acknowledgments
-
-- Inspired by evidence-based emotion regulation interventions
-- Built with insights from OT/SLP professionals, autism specialists, and neurodivergent families
-- Special thanks to the open-source community (Next.js, Supabase, XState, shadcn/ui, Vapi)
-
----
-
-## 📞 Contact
-
-- **Project Lead**: [Your Name]
-- **Email**: ada@example.com
-- **Website**: https://ada-emotion.coach
-- **GitHub**: https://github.com/your-org/ada-emotion-coach
-
-For clinical inquiries, partnership opportunities, or research collaboration, please reach out via email.
-
----
-
-**Ada Emotion Coach** is not a replacement for professional therapy. If you or a child you know is in crisis, please contact:
-- **National Suicide Prevention Lifeline**: 988
-- **Crisis Text Line**: Text HOME to 741741
-- **Emergency Services**: 911

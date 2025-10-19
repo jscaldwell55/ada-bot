@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@/lib/supabase/client'
 import { observerAgentInputSchema, observerAgentOutputSchema } from '@/lib/validation/schemas'
 import { OBSERVER_AGENT_SYSTEM_PROMPT, AGENT_MODEL_CONFIG } from '@/lib/agents/prompts'
 import { callOpenAIWithTimeout, AGENT_TIMEOUTS, OpenAITimeoutError } from '@/lib/agents/openai-client'
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     ).catch(() => {}) // Non-blocking
 
     // Store in database
-    const supabase = createClient()
+    const supabase = createServerClient()
 
     // Update emotion_rounds with observer context
     const { error: updateError } = await supabase

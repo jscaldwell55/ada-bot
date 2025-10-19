@@ -5,6 +5,7 @@
  * Main container integrating XState machine for emotion round flow
  */
 
+import React from 'react'
 import { useMachine } from '@xstate/react'
 import { emotionRoundMachine, createEmotionRoundContext } from '@/lib/machines/emotionRoundMachine'
 import type { Story, RegulationScript } from '@/types/database'

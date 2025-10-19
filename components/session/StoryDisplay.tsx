@@ -6,14 +6,12 @@
  * Optional debug info for therapist/parent review
  */
 
-import { useEffect } from 'react'
 import type { Story } from '@/types/database'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Volume2, VolumeX, Loader2 } from 'lucide-react'
+import { Volume2, VolumeX } from 'lucide-react'
 import { EMOTIONS } from '@/lib/utils/constants'
-import { useVapi } from '@/lib/hooks/useVapi'
-import type { VapiEmotion } from '@/types/vapi'
+import { useElevenLabsTTS } from '@/lib/hooks/useElevenLabsTTS'
 
 interface StoryDisplayProps {
   story: Story
@@ -58,30 +56,19 @@ function StoryDebugInfo({ story }: { story: Story }) {
 }
 
 export default function StoryDisplay({ story }: StoryDisplayProps) {
-  const { speak, startSession, stopSession, isConnected, isSpeaking } = useVapi()
+  const { speak, stop, isPlaying } = useElevenLabsTTS()
 
-  // Auto-connect when component mounts
-  useEffect(() => {
-    startSession().catch((err) => {
-      console.warn('[StoryDisplay] Failed to start Vapi session:', err)
-    })
-
-    // Cleanup: stop session on unmount
-    return () => {
-      stopSession().catch((err) => {
-        console.warn('[StoryDisplay] Failed to stop session:', err)
-      })
-    }
-  }, [startSession, stopSession])
-
-  const handleToggleVoice = () => {
-    if (isSpeaking) {
-      // Cannot stop mid-speech with Vapi, but we could disconnect
-      stopSession()
-    } else if (isConnected) {
-      // Map story emotion to Vapi emotion
-      const emotion = (story.emotion || 'calm') as VapiEmotion
-      speak(story.text, { emotion })
+  const handleToggleVoice = async () => {
+    if (isPlaying) {
+      stop()
+    } else {
+      try {
+        // Map story emotion to TTS emotion
+        const emotion = story.emotion as 'happy' | 'sad' | 'angry' | 'scared' | 'calm'
+        await speak(story.text, { emotion })
+      } catch (error) {
+        console.error('[StoryDisplay] Failed to speak:', error)
+      }
     }
   }
 
@@ -106,19 +93,10 @@ export default function StoryDisplay({ story }: StoryDisplayProps) {
               variant="outline"
               size="icon"
               onClick={handleToggleVoice}
-              disabled={!isConnected}
               className="ml-2 shrink-0"
-              title={
-                !isConnected
-                  ? 'Connecting...'
-                  : isSpeaking
-                  ? 'Stop reading'
-                  : 'Read story aloud'
-              }
+              title={isPlaying ? 'Stop reading' : 'Read story aloud'}
             >
-              {!isConnected ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : isSpeaking ? (
+              {isPlaying ? (
                 <VolumeX className="h-5 w-5" />
               ) : (
                 <Volume2 className="h-5 w-5" />
@@ -136,18 +114,10 @@ export default function StoryDisplay({ story }: StoryDisplayProps) {
           </div>
 
           {/* Speaking Indicator */}
-          {isSpeaking && (
+          {isPlaying && (
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground animate-pulse">
               <Volume2 className="h-4 w-4" />
               <span>Reading story...</span>
-            </div>
-          )}
-
-          {/* Connection Status */}
-          {!isConnected && (
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Connecting to voice...</span>
             </div>
           )}
 

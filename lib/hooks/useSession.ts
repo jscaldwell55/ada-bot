@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSupabase } from '@/components/providers/SupabaseProvider'
 import type {
-  Session,
+  SessionWithRounds,
   EmotionRound,
   Story,
 } from '@/types/database'
@@ -17,7 +17,7 @@ import type { GetSessionResponse } from '@/types/api'
 export type { SessionWithRounds } from '@/types/database'
 
 interface UseSessionReturn {
-  session: Session | null
+  session: SessionWithRounds | null
   rounds: EmotionRound[]
   stories: Story[]
   currentRound: EmotionRound | null
@@ -31,7 +31,7 @@ interface UseSessionReturn {
 
 export function useSession(sessionId: string | null): UseSessionReturn {
   const supabase = useSupabase()
-  const [session, setSession] = useState<Session | null>(null)
+  const [session, setSession] = useState<SessionWithRounds | null>(null)
   const [rounds, setRounds] = useState<EmotionRound[]>([])
   const [stories, setStories] = useState<Story[]>([])
   const [currentRoundIndex, setCurrentRoundIndex] = useState(0)
@@ -101,8 +101,10 @@ export function useSession(sessionId: string | null): UseSessionReturn {
 
   // Get current round and story
   const currentRound = rounds[currentRoundIndex] || null
+  
+  // FIXED: Extract story from either agent-generated or static location
   const currentStory = currentRound
-    ? stories.find((s) => s.id === currentRound.story_id) || null
+    ? extractStoryFromRound(currentRound, stories)
     : null
 
   // Advance to next round
@@ -148,6 +150,32 @@ export function useSession(sessionId: string | null): UseSessionReturn {
     advanceRound,
     completeSession,
   }
+}
+
+/**
+ * Helper: Extract story from round (agent-generated or static)
+ */
+function extractStoryFromRound(round: EmotionRound, stories: Story[]): Story | null {
+  // Priority 1: Agent-generated story
+  if (round.action_agent_story) {
+    const agentStory = round.action_agent_story as any
+    return {
+      id: 'agent-generated',
+      title: agentStory.theme || 'Story',
+      text: agentStory.story_text,
+      emotion: agentStory.target_emotion,
+      age_band: '8-9', // Default, doesn't matter for display
+      complexity_score: agentStory.complexity_score || 2,
+      created_at: new Date().toISOString(),
+    }
+  }
+
+  // Priority 2: Static story from database
+  if (round.story_id) {
+    return stories.find((s) => s.id === round.story_id) || null
+  }
+
+  return null
 }
 
 /**

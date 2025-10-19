@@ -179,7 +179,7 @@ export async function logStoryGeneration(
     theme: output.theme,
     targetEmotion: output.target_emotion,
     complexityScore: output.complexity_score,
-    storyLength: output.text?.length || 0,
+    storyLength: output.story_text?.length || 0,
     timeMs,
     safetyFlags: safetyFlags?.length ? safetyFlags : undefined,
   })
@@ -198,7 +198,7 @@ export async function logStoryGeneration(
       theme: output.theme,
       target_emotion: output.target_emotion,
       complexity_score: output.complexity_score,
-      story_length: output.text?.length || 0,
+      story_length: output.story_text?.length || 0,
     },
   }
 

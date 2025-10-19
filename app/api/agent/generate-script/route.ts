@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@/lib/supabase/client'
 import { actionAgentScriptInputSchema, actionAgentScriptOutputSchema } from '@/lib/validation/schemas'
 import { ACTION_AGENT_SCRIPT_SYSTEM_PROMPT, AGENT_MODEL_CONFIG, FALLBACK_MESSAGES } from '@/lib/agents/prompts'
 import { validateScriptOutput, checkForPseudoscience } from '@/lib/services/agentSafety'
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       hasObserverInsights: !!validatedInput.observer_insights,
     })
 
-    const supabase = createClient()
+    const supabase = createServerClient()
 
     // Fetch child details
     const { data: child, error: childError } = await supabase

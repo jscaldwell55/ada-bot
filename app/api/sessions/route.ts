@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Determine if agents are enabled (default: false until agent UI is fully integrated)
-    const agentEnabled = body.agent_enabled === true
+    // Determine if agents are enabled (default: true for adaptive content generation)
+    const agentEnabled = body.agent_enabled !== false
 
     let stories: any[] = []
     let storyIds: string[] = []

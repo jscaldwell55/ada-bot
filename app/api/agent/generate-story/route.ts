@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@/lib/supabase/client'
 import { actionAgentStoryInputSchema, actionAgentStoryOutputSchema } from '@/lib/validation/schemas'
 import { ACTION_AGENT_STORY_SYSTEM_PROMPT, AGENT_MODEL_CONFIG, FALLBACK_MESSAGES } from '@/lib/agents/prompts'
 import { validateStoryOutput } from '@/lib/services/agentSafety'
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       hasObserverSummary: !!validatedInput.observer_summary,
     })
 
-    const supabase = createClient()
+    const supabase = createServerClient()
 
     // Fetch child details
     const { data: child, error: childError } = await supabase

@@ -33,7 +33,9 @@ export const updateSessionSchema = z.object({
 export const createRoundSchema = z.object({
   session_id: z.string().uuid('Invalid session ID format'),
   round_number: z.number().int().min(1).max(5),
-  story_id: z.string().uuid('Invalid story ID format'),
+  // story_id is optional/nullable when agents are enabled (story generated dynamically)
+  // Required only when using static stories (agent_enabled: false)
+  story_id: z.string().uuid('Invalid story ID format').optional().nullable(),
 })
 
 export const labelEmotionSchema = z.object({
@@ -45,7 +47,7 @@ export const rateIntensitySchema = z.object({
 })
 
 export const selectScriptSchema = z.object({
-  regulation_script_id: z.string().uuid('Invalid script ID format'),
+  regulation_script_id: z.string().min(1, 'Script ID is required'), // String ID, not UUID
 })
 
 export const reflectIntensitySchema = z.object({
@@ -55,7 +57,7 @@ export const reflectIntensitySchema = z.object({
 export const updateRoundSchema = z.object({
   labeled_emotion: emotionLabelSchema.optional(),
   pre_intensity: intensityLevelSchema.optional(),
-  regulation_script_id: z.string().uuid().optional().nullable(),
+  regulation_script_id: z.string().optional().nullable(), // String ID, not UUID
   post_intensity: intensityLevelSchema.optional(),
   praise_message: z.string().optional().nullable(),
   is_correct: z.boolean().optional().nullable(),
@@ -63,7 +65,7 @@ export const updateRoundSchema = z.object({
 })
 
 export const completeRegulationSchema = z.object({
-  regulation_script_id: z.string().uuid('Invalid script ID format'),
+  regulation_script_id: z.string().min(1, 'Script ID is required'), // String ID, not UUID
   post_intensity: intensityLevelSchema,
 })
 

@@ -8,7 +8,7 @@
 // Force dynamic rendering for this page (prevents static generation issues)
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSupabase } from '@/components/providers/SupabaseProvider'
 import { useSession } from '@/lib/hooks/useSession'
@@ -27,13 +27,25 @@ export default function SessionPage({
   const supabase = useSupabase()
   const [child, setChild] = useState<Child | null>(null)
   const [currentRoundNumber, setCurrentRoundNumber] = useState(1)
+  const [needsRefresh, setNeedsRefresh] = useState(false)
+
+  // Use refs instead of state to prevent re-renders when toggling locks/counters
+  const isCreatingRound = useRef(false)
+  const roundCreationAttempts = useRef(0)
 
   const {
     session,
     stories,
     isLoading: sessionLoading,
     error: sessionError,
+    refreshSession,
   } = useSession(params.sessionId)
+
+  // Derive current round from session data
+  const currentRound = useMemo(
+    () => session?.rounds?.find(r => r.round_number === currentRoundNumber),
+    [session?.rounds, currentRoundNumber]
+  )
 
   // Load child data
   useEffect(() => {
@@ -50,19 +62,95 @@ export default function SessionPage({
     loadChild()
   }, [params.childId, supabase])
 
+  // Separate one-shot refresh effect after round creation
+  // This prevents infinite loops in the main effect
+  useEffect(() => {
+    if (!needsRefresh) return
+
+    (async () => {
+      try {
+        console.log('🔄 Triggering session refresh after round creation…')
+        await refreshSession()
+        console.log('✅ Session refreshed')
+      } finally {
+        // Important: reset the flag so this effect does not loop
+        setNeedsRefresh(false)
+      }
+    })()
+  }, [needsRefresh, refreshSession])
+
+  // Create round if needed for agent-enabled sessions
+  useEffect(() => {
+    // Only run when we *know* the intended round is missing
+    if (isCreatingRound.current) return
+    if (currentRound) return // ← prevents duplicates
+    if (!session?.id) return
+    if (!session.agent_enabled) return
+    if (!child) return
+
+    // Optional cap to avoid runaway logs
+    if (roundCreationAttempts.current >= 3) {
+      console.error(`Failed to create round ${currentRoundNumber} after 3 attempts`)
+      return
+    }
+
+    (async () => {
+      isCreatingRound.current = true
+      roundCreationAttempts.current += 1
+
+      try {
+        console.log(`Creating round ${currentRoundNumber} for session ${session.id}...`)
+        const res = await fetch('/api/rounds', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: session.id,
+            round_number: currentRoundNumber,
+            story_id: null, // Not needed for agent-enabled sessions
+            age_band: child.age_band,
+          }),
+        })
+
+        if (!res.ok) {
+          // Retry only on 5xx if desired; 4xx should throw
+          const status = res.status
+          if (status >= 500) {
+            console.warn(`Round create attempt ${roundCreationAttempts.current} failed with ${status}; will retry if under cap.`)
+            return // effect may run again
+          }
+          const text = await res.text().catch(() => '')
+          throw new Error(`Create round failed: ${status} ${text}`)
+        }
+
+        // Success on 200 or 201
+        console.log(`✅ Round ${currentRoundNumber} request completed (${res.status})`)
+        roundCreationAttempts.current = 0
+
+        // Instead of refreshing here (which loops), trigger a one-shot refresh if needed:
+        setNeedsRefresh(true)
+      } catch (err) {
+        console.error('Error creating round:', err)
+      } finally {
+        isCreatingRound.current = false
+      }
+    })()
+  }, [currentRound, currentRoundNumber, session?.id, session?.agent_enabled, child])
+
   const handleRoundComplete = () => {
     console.log('Round complete, current round:', currentRoundNumber)
-    
+
     if (currentRoundNumber >= 5) {
       // Session complete - mark as completed
       console.log('Session complete!')
       return
     }
-    
+
     // Move to next round
     const nextRound = currentRoundNumber + 1
     console.log('Moving to round:', nextRound)
     setCurrentRoundNumber(nextRound)
+    // Reset retry counter for new round
+    roundCreationAttempts.current = 0
   }
 
   if (sessionLoading || !child) {
@@ -169,18 +257,49 @@ export default function SessionPage({
   }
 
   // Get current story for this round
-  const currentStory = stories[currentRoundNumber - 1]
+  let currentStory = null
+
+  if (session.agent_enabled) {
+    // For agent-enabled sessions, get story from round data (dynamically generated)
+    const currentRound = session.rounds?.[currentRoundNumber - 1]
+
+    if (currentRound?.action_agent_story) {
+      // Transform agent story format to Story format
+      const agentStory = currentRound.action_agent_story as any
+      currentStory = {
+        id: `agent-story-${currentRound.id}`,
+        text: agentStory.story_text,
+        emotion: agentStory.target_emotion,
+        title: agentStory.theme,
+        complexity_score: agentStory.complexity_score,
+        age_band: child?.age_band || '8-9',
+        created_at: currentRound.started_at,
+      }
+    }
+  } else {
+    // For non-agent sessions, use pre-selected stories
+    currentStory = stories[currentRoundNumber - 1]
+  }
 
   // Wait for story to load
   if (!currentStory) {
+    const loadingMessage = session.agent_enabled && isCreatingRound.current
+      ? `Creating a personalized story for round ${currentRoundNumber}...`
+      : `Loading story for round ${currentRoundNumber}...`
+
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md">
           <CardHeader>
-            <CardTitle>Loading story for round {currentRoundNumber}...</CardTitle>
+            <CardTitle>{loadingMessage}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+            {session.agent_enabled && isCreatingRound.current && (
+              <p className="text-sm text-muted-foreground text-center">
+                This may take a few moments...
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -10,8 +10,8 @@ import type { RegulationScript } from '@/types/database'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { ChevronRight, ChevronLeft, Volume2, Loader2 } from 'lucide-react'
-import { useVapi } from '@/lib/hooks/useVapi'
+import { ChevronRight, ChevronLeft, Volume2 } from 'lucide-react'
+import { useElevenLabsTTS } from '@/lib/hooks/useElevenLabsTTS'
 
 interface ScriptPlayerProps {
   script: RegulationScript
@@ -27,32 +27,20 @@ export default function ScriptPlayer({
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(true)
   const [timeLeft, setTimeLeft] = useState(0)
-  const { speak, startSession, stopSession, isConnected, isSpeaking } = useVapi()
+  const { speak, stop, isPlaying: isSpeaking } = useElevenLabsTTS()
 
   const currentStep = script.steps[currentStepIndex]
   const isLastStep = currentStepIndex === script.steps.length - 1
   const progress = ((currentStepIndex + 1) / script.steps.length) * 100
 
-  // Start Vapi session when component mounts
-  useEffect(() => {
-    startSession().catch((err) => {
-      console.warn('[ScriptPlayer] Failed to start Vapi session:', err)
-    })
-
-    // Cleanup: stop session on unmount
-    return () => {
-      stopSession().catch((err) => {
-        console.warn('[ScriptPlayer] Failed to stop session:', err)
-      })
-    }
-  }, [startSession, stopSession])
-
   // Speak current step when it changes
   useEffect(() => {
-    if (isPlaying && isConnected && currentStep.text) {
-      speak(currentStep.text, { emotion: 'calm' })
+    if (isPlaying && currentStep.text) {
+      speak(currentStep.text, { emotion: 'calm' }).catch((err) => {
+        console.warn('[ScriptPlayer] Failed to speak step:', err)
+      })
     }
-  }, [currentStepIndex, isPlaying, isConnected, currentStep.text, speak])
+  }, [currentStepIndex, isPlaying, currentStep.text, speak])
 
   // Auto-advance timer
   useEffect(() => {
@@ -83,7 +71,6 @@ export default function ScriptPlayer({
     }
   }, [currentStepIndex, autoAdvance, isPlaying, currentStep.duration_ms, isLastStep, onComplete])
 
-
   const handleNext = () => {
     if (isLastStep) {
       onComplete()
@@ -99,6 +86,9 @@ export default function ScriptPlayer({
   }
 
   const handleTogglePause = () => {
+    if (isPlaying) {
+      stop() // Stop speaking if pausing
+    }
     setIsPlaying((prev) => !prev)
   }
 
@@ -141,14 +131,6 @@ export default function ScriptPlayer({
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground animate-pulse">
               <Volume2 className="h-4 w-4" />
               <span>Speaking...</span>
-            </div>
-          )}
-
-          {/* Connection Status */}
-          {!isConnected && (
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Connecting to voice...</span>
             </div>
           )}
         </CardContent>

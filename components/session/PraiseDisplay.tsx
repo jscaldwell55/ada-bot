@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Sparkles, Trophy, Star, Heart, Volume2 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
-import { useVapi } from '@/lib/hooks/useVapi'
+import { useElevenLabsTTS } from '@/lib/hooks/useElevenLabsTTS'
 
 interface PraiseDisplayProps {
   message: string
@@ -29,7 +29,7 @@ export default function PraiseDisplay({
 }: PraiseDisplayProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [confettiActive, setConfettiActive] = useState(false)
-  const { speak, isConnected, isSpeaking } = useVapi()
+  const { speak, isPlaying } = useElevenLabsTTS()
 
   useEffect(() => {
     // Trigger entrance animation
@@ -39,13 +39,13 @@ export default function PraiseDisplay({
     setTimeout(() => setConfettiActive(true), 300)
     setTimeout(() => setConfettiActive(false), 3000)
 
-    // Auto-play praise with Vapi if connected
-    if (isConnected && message) {
+    // Auto-play praise with TTS
+    if (message) {
       setTimeout(() => {
         speak(message, { emotion: 'happy' })
       }, 500) // Small delay to let animation settle
     }
-  }, [message, isConnected, speak])
+  }, [message, speak])
 
   const improved = intensityDelta !== null && intensityDelta < 0
 
@@ -119,7 +119,7 @@ export default function PraiseDisplay({
             </p>
 
             {/* Speaking Indicator */}
-            {isSpeaking && (
+            {isPlaying && (
               <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground animate-pulse">
                 <Volume2 className="h-4 w-4" />
                 <span>Reading praise...</span>
