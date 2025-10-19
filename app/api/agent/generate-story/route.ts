@@ -165,19 +165,8 @@ export async function POST(request: NextRequest) {
     const generationTimeMs = Date.now() - startTime
     const tokensUsed = completion.usage?.total_tokens || null
 
-    // 4. Log to agent_generations table (fire-and-forget)
-    // Note: round_id will be added later via POST /api/rounds
-    logStoryGeneration(
-      validatedInput.session_id || '',
-      undefined, // round_id not available yet
-      validatedInput,
-      storyOutput,
-      generationTimeMs,
-      safetyResult.flags
-    ).catch(() => {}) // Non-blocking
-
-    // Return generation metadata for logging after round creation
-    // (We don't have round_id yet, so we can't log to agent_generations here)
+    // 4. Return generation metadata for logging after round creation
+    // The rounds API will log this with proper round_id and session_id
     const generationMetadata = {
       agent_type: 'action_story' as const,
       input_context: validatedInput,

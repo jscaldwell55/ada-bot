@@ -1,7 +1,7 @@
 // app/admin/agent-logs/page.tsx
 // Admin dashboard for viewing agent generation logs
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -16,9 +16,10 @@ import { Badge } from '@/components/ui/badge'
 export const dynamic = 'force-dynamic'
 
 async function getAgentLogs() {
-  const supabase = createClient()
+  const supabase = createServiceClient()
 
   // Fetch agent generation logs
+  // Note: Using service client to bypass RLS for admin access
   const { data, error } = await supabase
     .from('agent_generations')
     .select(`
@@ -30,13 +31,14 @@ async function getAgentLogs() {
       tokens_used,
       created_at,
       round_id,
+      session_id,
       emotion_rounds (
         round_number,
-        labeled_emotion,
-        sessions (
-          children (
-            nickname
-          )
+        labeled_emotion
+      ),
+      sessions (
+        children (
+          nickname
         )
       )
     `)
@@ -59,14 +61,16 @@ async function getAgentLogs() {
     tokens_used: number | null
     created_at: string
     round_id: string | null
+    session_id: string | null
     emotion_rounds?: any
+    sessions?: any
   }>
 
   return logs
 }
 
 async function getLogStats() {
-  const supabase = createClient()
+  const supabase = createServiceClient()
 
   const { data, error } = await supabase
     .from('agent_generations')
@@ -206,7 +210,8 @@ export default async function AgentLogsPage() {
                 <TableBody>
                   {logs.map((log) => {
                     const round = Array.isArray(log.emotion_rounds) ? log.emotion_rounds[0] : log.emotion_rounds
-                    const session = round?.sessions
+                    // Get session from either emotion_round or directly from agent_generation
+                    const session = Array.isArray(log.sessions) ? log.sessions[0] : log.sessions
                     const child = Array.isArray(session?.children) ? session.children[0] : session?.children
                     const hasSafetyFlags = log.safety_flags && log.safety_flags.length > 0
 

@@ -170,6 +170,7 @@ ada-emotion-coach/
 │   ├── supabase/
 │   │   ├── client.ts          # Browser client
 │   │   ├── server.ts          # Server client (API routes)
+│   │   ├── service.ts         # 🆕 Service role client (admin operations)
 │   │   ├── middleware.ts      # Auth middleware
 │   │   └── auth-helpers.ts    # Auth helper functions
 │   │
@@ -210,7 +211,7 @@ ada-emotion-coach/
 │
 ├── content/
 │   ├── stories.json         # 30 micro-stories
-│   ├── scripts.json         # 5 regulation scripts
+│   ├── scripts.json         # 9 regulation scripts (3 steps each, 60s)
 │   └── seed.ts              # Seeding script
 │
 ├── supabase/
@@ -530,8 +531,9 @@ Each session consists of **5 emotion rounds**. Each round follows this exact seq
 
 **agent_generations** 🆕
 - Audit trail for all AI agent generations
-- Fields: round_id, agent_type (observer|action_story|action_script|action_praise), input_context (JSONB), output_content (JSONB), model_version, safety_flags (array), generation_time_ms, tokens_used, created_at
+- Fields: round_id, session_id, agent_type (observer|action_story|action_script|action_praise), input_context (JSONB), output_content (JSONB), model_version, safety_flags (array), generation_time_ms, tokens_used, metadata (JSONB), created_at
 - Enables monitoring, debugging, and quality assurance
+- Admin dashboard available at `/admin/agent-logs`
 
 ### Key Functions & Triggers
 
@@ -557,32 +559,57 @@ Each session consists of **5 emotion rounds**. Each round follows this exact seq
 4. **Big** 🔴 - A big feeling
 5. **Huge** ⭐ - A very big feeling
 
-### Regulation Scripts (5 strategies)
+### Regulation Scripts (9 strategies)
 
-1. **Calm Breathing** 🫧 (30s)
+**All scripts now follow a simplified 3-step format (60 seconds each):**
+1. Introduction (~8s)
+2. Core activity with combined instructions (~44s)
+3. Completion/affirmation (~8s)
+
+1. **Calm Breathing** 🫧 (60s) - "Breathing Bubbles"
    - For: scared, sad, angry
    - Slow diaphragmatic breathing with hand on belly
-   - Breathe in through nose, out through mouth
+   - Breathe in through nose (3 counts), out through mouth (4 counts)
 
-2. **Body Squeeze** 💪 (45s)
-   - For: angry, scared
+2. **Wall Push** 🧱 (60s) - "Super Strong Push"
+   - For: angry
    - Proprioceptive input (heavy work)
-   - Squeeze and release different body parts
+   - Push against wall with full strength, then shake out arms
 
-3. **5-4-3-2-1 Grounding** 👀 (60s)
-   - For: scared, angry
-   - Sensory grounding technique
-   - Notice: 5 things you see, 4 touch, 3 hear, 2 smell, 1 taste
+3. **Look Around** 👀 (60s) - "Noticing Game"
+   - For: scared
+   - Sensory grounding technique (5-4-3-2-1)
+   - Notice 3 things you see, 2 things you touch, 1 sound you hear
 
-4. **Gentle Stretch** 🤸 (40s)
-   - For: sad, calm
-   - Slow body movements
-   - Arm reaches, side bends, shoulder rolls
+4. **Easy Stretch** 🤸 (60s) - "Body Wake-Up"
+   - For: sad, scared, calm
+   - Gentle body movements
+   - Reach high, drop arms, shake whole body
 
-5. **Count and Breathe** 🔢 (35s)
-   - For: angry, scared
+5. **Count and Breathe** 🔢 (60s) - "Slow Counting"
+   - For: angry
    - Simple counting with breathing
    - Slow count from 1-10 while breathing deeply
+
+6. **Squeeze and Let Go** ✊ (60s) - "Squeeze It Out"
+   - For: angry, scared
+   - Progressive muscle relaxation
+   - Squeeze fists tight, then shoulders, then release completely
+
+7. **Imagine Your Safe Place** 🏝️ (60s) - "Happy Place"
+   - For: scared, sad
+   - Guided visualization
+   - Imagine a safe, calm place using all senses
+
+8. **Color Breathing** 🌈 (60s) - "Rainbow Breath"
+   - For: angry, scared, sad
+   - Visualization + breathing
+   - Breathe in calm colors, breathe out uncomfortable feelings
+
+9. **Jump and Wiggle** 🕺 (60s) - "Shake It Off"
+   - For: angry, sad, scared
+   - High-energy movement
+   - Jump, shake, wiggle to release big feelings
 
 ### Story Distribution (30 stories)
 
@@ -876,22 +903,48 @@ export const SESSION_CONFIG = {
 
 ### Script Recommendations
 ```typescript
-// Emotion → Recommended Scripts
+// Emotion → Recommended Scripts (script IDs)
 {
-  sad: ['bubble-breathing', 'gentle-stretch'],
-  angry: ['body-squeeze', 'count-and-breathe', 'grounding'],
-  scared: ['bubble-breathing', 'grounding', 'body-squeeze'],
+  angry: ['wall-pushes', 'count-to-ten', 'squeeze-relax', 'jump-wiggle'],
+  scared: ['grounding-5-4-3-2-1', 'bubble-breathing', 'safe-place-visualization', 'squeeze-relax'],
+  sad: ['gentle-stretch', 'bubble-breathing', 'safe-place-visualization', 'color-breathing'],
   happy: ['gentle-stretch'],
-  calm: ['gentle-stretch', 'bubble-breathing'],
+  calm: ['gentle-stretch', 'bubble-breathing', 'color-breathing'],
 }
 
-// High intensity (4-5): Prioritize physical regulation
-// Low intensity (1-2): Gentle approaches only
+// High intensity (4-5): Prioritize physical regulation (wall-pushes, jump-wiggle, squeeze-relax)
+// Low intensity (1-2): Gentle approaches only (gentle-stretch, bubble-breathing, visualization)
+// All scripts: 60 seconds, 3 steps, voice-guided
 ```
 
 ---
 
 ## 🆕 Recent Updates
+
+### October 2025 - Production Readiness & Simplification
+
+#### **Simplified Regulation Exercises** ✅ **New**
+- **What Changed**: All 9 regulation scripts now have exactly 3 steps (60 seconds each)
+- **Impact**: Easier for children to follow, more consistent timing, better completion rates
+- **Format**: Introduction (8s) → Core activity (44s) → Completion (8s)
+- **Location**: `content/scripts.json`
+
+#### **Admin Agent Logging Dashboard** ✅ **New**
+- **What Changed**: Created admin panel to view all AI agent generations
+- **Impact**: Complete visibility into agent activity, performance metrics, safety monitoring
+- **Features**:
+  - View all agent generations (Observer, Story, Script, Praise)
+  - See child name, round number, emotion context for each log
+  - Monitor generation times, safety flags, and model versions
+  - Real-time stats (total generations, avg time, safety alerts)
+- **Location**: `/admin/agent-logs`
+- **Implementation**: Uses service role client to bypass RLS for admin access
+
+#### **Fixed Agent Logging System** ✅
+- **What Changed**: Agent logs now properly track `round_id` and `session_id`
+- **Impact**: Complete audit trail with full context (child, round, session)
+- **Fix**: Story generations are now logged after round creation with proper IDs
+- **Location**: `app/api/rounds/route.ts`, `lib/supabase/service.ts`
 
 ### October 2025 - ElevenLabs Migration
 
@@ -943,9 +996,14 @@ export const SESSION_CONFIG = {
   - [ ] Emotion-aware voice modulation
   - [ ] Parent voice settings in dashboard
 - [ ] **Agent Architecture Expansion**
+  - [x] Admin dashboard for agent logs and monitoring
   - [ ] Complete Action Agent script adaptation
   - [ ] Multi-session context tracking
   - [ ] Parent dashboard showing Observer insights
+- [ ] **Content Expansion**
+  - [x] Simplified 3-step regulation scripts (60s each)
+  - [ ] Additional age-specific stories
+  - [ ] Parent-contributed story library
 - [ ] Spanish language support (voice + text)
 - [ ] Progress visualization (charts)
 - [ ] Parent weekly reports (email)
@@ -991,9 +1049,12 @@ We welcome contributions from developers, clinicians, researchers, and educators
 
 **Regulation Scripts**:
 1. Evidence-based strategy only
-2. Clear step-by-step instructions
-3. Test with voice guidance
-4. Appropriate timing (duration_ms)
+2. Must follow 3-step format:
+   - Step 1: Introduction (~8s)
+   - Step 2: Core activity with combined instructions (~44s)
+   - Step 3: Completion/affirmation (~8s)
+3. Total duration: 60 seconds (duration_ms must add up to 60000)
+4. Test with voice guidance (ElevenLabs reads each step)
 5. Add to `content/scripts.json`
 
 ### Pull Request Process

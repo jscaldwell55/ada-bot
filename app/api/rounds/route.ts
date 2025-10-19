@@ -8,6 +8,7 @@ import { createServerClient } from '@/lib/supabase/client'
 import { createRoundSchema } from '@/lib/validation/schemas'
 import type { CreateRoundResponse } from '@/types/api'
 import type { InsertEmotionRound } from '@/types/database'
+import { logStoryGeneration } from '@/lib/services/agentLogger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -89,6 +90,7 @@ export async function POST(request: NextRequest) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               child_id: session.child_id,
+              session_id: validatedData.session_id, // Add session_id for logging
               age_band: childAgeBand,
               observer_summary: previousContext,
               round_number: validatedData.round_number,
@@ -219,6 +221,19 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`✅ Round ${validatedData.round_number} created successfully`)
+
+    // Log story generation with proper round_id now that round is created
+    if (generatedStory && (body as any).storyGenerationMetadata) {
+      const metadata = (body as any).storyGenerationMetadata
+      logStoryGeneration(
+        validatedData.session_id,
+        round.id, // Now we have the round_id
+        metadata.input_context,
+        metadata.output_content,
+        metadata.generation_time_ms,
+        metadata.safety_flags
+      ).catch(() => {}) // Fire-and-forget
+    }
 
     const response: CreateRoundResponse = {
       round,

@@ -46,58 +46,23 @@
       "icon_emoji": "🫧",
       "recommended_for_emotions": ["scared", "sad", "angry"],
       "recommended_for_intensities": [2, 3, 4, 5],
-      "duration_seconds": 180,
+      "duration_seconds": 60,
       "supports_repetition": true,
       "choice_category": "calming",
       "steps": [
         {
           "text": "Let's do some calm breathing together. Put your hands on your belly",
-          "duration_ms": 5000,
-          "emoji": "🫧"
-        },
-        {
-          "text": "Breathe in slowly through your nose... 1... 2... 3...",
-          "duration_ms": 4000,
-          "emoji": "👃"
-        },
-        {
-          "text": "Now breathe out through your mouth... 1... 2... 3... 4...",
-          "duration_ms": 5000,
-          "emoji": "💨"
-        },
-        {
-          "text": "Breathe in again... 1... 2... 3...",
-          "duration_ms": 4000,
-          "emoji": "👃"
-        },
-        {
-          "text": "And out slowly... 1... 2... 3... 4...",
-          "duration_ms": 5000,
-          "emoji": "💨"
-        },
-        {
-          "text": "One more time. In... 1... 2... 3...",
-          "duration_ms": 4000,
-          "emoji": "👃"
-        },
-        {
-          "text": "And out... 1... 2... 3... 4...",
-          "duration_ms": 5000,
-          "emoji": "💨"
-        },
-        {
-          "text": "Notice how your belly moves up and down like gentle waves",
-          "duration_ms": 6000,
-          "emoji": "🌊"
-        },
-        {
-          "text": "Keep breathing slowly. You're helping your body feel calmer",
           "duration_ms": 8000,
           "emoji": "🫧"
         },
         {
+          "text": "Breathe in slowly through your nose... 1... 2... 3... Now breathe out through your mouth... 1... 2... 3... 4... Do this a few more times, slowly",
+          "duration_ms": 45000,
+          "emoji": "💨"
+        },
+        {
           "text": "Nice work! You did calm breathing",
-          "duration_ms": 4000,
+          "duration_ms": 7000,
           "emoji": "🌟"
         }
       ],
@@ -112,58 +77,23 @@
       "icon_emoji": "🧱",
       "recommended_for_emotions": ["angry"],
       "recommended_for_intensities": [3, 4, 5],
-      "duration_seconds": 180,
+      "duration_seconds": 60,
       "supports_repetition": true,
       "choice_category": "movement",
       "steps": [
         {
-          "text": "When you feel angry, using your strong muscles can help! Let's try it",
-          "duration_ms": 6000,
-          "emoji": "💪"
-        },
-        {
-          "text": "Find a wall and put both hands on it, like you're going to push it down",
-          "duration_ms": 6000,
+          "text": "When you feel angry, using your strong muscles can help! Find a wall and put both hands on it",
+          "duration_ms": 10000,
           "emoji": "🧱"
         },
         {
-          "text": "Now push as HARD as you can! Use all your strength! 1... 2... 3... 4... 5!",
-          "duration_ms": 10000,
+          "text": "Now push as HARD as you can! Use all your strength! Push... push... push! Now stop and shake out your arms. Do this a few more times",
+          "duration_ms": 42000,
           "emoji": "💪"
-        },
-        {
-          "text": "Stop and shake out your arms. Let them feel loose and wiggly",
-          "duration_ms": 6000,
-          "emoji": "😌"
-        },
-        {
-          "text": "Take a deep breath in... and let it out",
-          "duration_ms": 6000,
-          "emoji": "💨"
-        },
-        {
-          "text": "Ready for another push? Hands on the wall!",
-          "duration_ms": 5000,
-          "emoji": "🧱"
-        },
-        {
-          "text": "PUSH! Even harder this time! 1... 2... 3... 4... 5!",
-          "duration_ms": 10000,
-          "emoji": "💪"
-        },
-        {
-          "text": "Shake it out again. Feel your arms relax",
-          "duration_ms": 6000,
-          "emoji": "😌"
-        },
-        {
-          "text": "One more big breath in... and out",
-          "duration_ms": 6000,
-          "emoji": "🌬️"
         },
         {
           "text": "Awesome job! You used your strong muscles to help with big feelings",
-          "duration_ms": 5000,
+          "duration_ms": 8000,
           "emoji": "⭐"
         }
       ],
@@ -178,58 +108,23 @@
       "icon_emoji": "👀",
       "recommended_for_emotions": ["scared"],
       "recommended_for_intensities": [2, 3, 4, 5],
-      "duration_seconds": 180,
+      "duration_seconds": 60,
       "supports_repetition": true,
       "choice_category": "awareness",
       "steps": [
         {
           "text": "When we feel scared, noticing what's around us can help us feel safer. Let's try it",
-          "duration_ms": 7000,
+          "duration_ms": 8000,
           "emoji": "👀"
         },
         {
-          "text": "First, look around the room. Find 3 things you can see",
-          "duration_ms": 10000,
+          "text": "Look around the room. Find 3 things you can see. Now touch 2 things near you. Close your eyes and listen for 1 sound you can hear",
+          "duration_ms": 44000,
           "emoji": "👁️"
         },
         {
-          "text": "What colors are they? What shapes? Really look at them",
+          "text": "Great job noticing! You're right here, right now. You're safe in this moment",
           "duration_ms": 8000,
-          "emoji": "🎨"
-        },
-        {
-          "text": "Now, reach out and touch 2 things near you",
-          "duration_ms": 8000,
-          "emoji": "✋"
-        },
-        {
-          "text": "Are they soft or hard? Smooth or bumpy? Warm or cool?",
-          "duration_ms": 8000,
-          "emoji": "🤚"
-        },
-        {
-          "text": "Close your eyes for a moment and listen carefully",
-          "duration_ms": 6000,
-          "emoji": "👂"
-        },
-        {
-          "text": "What's 1 sound you can hear? Maybe it's quiet, maybe it's loud",
-          "duration_ms": 8000,
-          "emoji": "🔊"
-        },
-        {
-          "text": "Open your eyes. Take a deep breath in... and out",
-          "duration_ms": 6000,
-          "emoji": "😌"
-        },
-        {
-          "text": "You're right here, right now. You're safe in this moment",
-          "duration_ms": 7000,
-          "emoji": "🌟"
-        },
-        {
-          "text": "Great job noticing! You helped yourself feel more calm and safe",
-          "duration_ms": 5000,
           "emoji": "💚"
         }
       ],
@@ -244,58 +139,23 @@
       "icon_emoji": "🤸",
       "recommended_for_emotions": ["sad", "scared", "calm"],
       "recommended_for_intensities": [1, 2, 3],
-      "duration_seconds": 180,
+      "duration_seconds": 60,
       "supports_repetition": true,
       "choice_category": "movement",
       "steps": [
         {
           "text": "Let's wake up your body with some gentle stretches",
-          "duration_ms": 5000,
+          "duration_ms": 7000,
           "emoji": "🤸"
         },
         {
-          "text": "Stand up if you can, and reach your arms way up high to the sky!",
-          "duration_ms": 8000,
+          "text": "Stand up if you can, and reach your arms way up high to the sky! Stretch as tall as you can! Now slowly drop your arms down and shake out your whole body",
+          "duration_ms": 45000,
           "emoji": "🙌"
-        },
-        {
-          "text": "Stretch as tall as you can! Like you're trying to touch the clouds",
-          "duration_ms": 7000,
-          "emoji": "☁️"
-        },
-        {
-          "text": "Now slowly drop your arms down and let them hang loose, like noodles",
-          "duration_ms": 7000,
-          "emoji": "🌳"
-        },
-        {
-          "text": "Gently roll your shoulders back... and around... nice and slow",
-          "duration_ms": 8000,
-          "emoji": "🔄"
-        },
-        {
-          "text": "Now shake out your whole body! Shake your arms, legs, wiggle around!",
-          "duration_ms": 8000,
-          "emoji": "💦"
-        },
-        {
-          "text": "Reach up high one more time! Stretch!",
-          "duration_ms": 7000,
-          "emoji": "🙌"
-        },
-        {
-          "text": "And relax. Let your body feel loose and comfortable",
-          "duration_ms": 6000,
-          "emoji": "😌"
-        },
-        {
-          "text": "Take a deep breath in... and let it all out with a big sigh",
-          "duration_ms": 6000,
-          "emoji": "💨"
         },
         {
           "text": "Wonderful! Your body feels better after moving and stretching",
-          "duration_ms": 5000,
+          "duration_ms": 8000,
           "emoji": "✨"
         }
       ],
@@ -310,78 +170,23 @@
       "icon_emoji": "🔢",
       "recommended_for_emotions": ["angry"],
       "recommended_for_intensities": [2, 3, 4],
-      "duration_seconds": 180,
+      "duration_seconds": 60,
       "supports_repetition": true,
       "choice_category": "calming",
       "steps": [
         {
           "text": "Counting slowly can help calm down big angry feelings. Let's try it together",
-          "duration_ms": 7000,
+          "duration_ms": 8000,
           "emoji": "🔢"
         },
         {
-          "text": "Take a breath, then say 1",
-          "duration_ms": 4000,
-          "emoji": "1️⃣"
-        },
-        {
-          "text": "Breathe... then 2",
-          "duration_ms": 4000,
-          "emoji": "2️⃣"
-        },
-        {
-          "text": "Breathe... then 3",
-          "duration_ms": 4000,
-          "emoji": "3️⃣"
-        },
-        {
-          "text": "Breathe... then 4",
-          "duration_ms": 4000,
-          "emoji": "4️⃣"
-        },
-        {
-          "text": "Breathe... then 5",
-          "duration_ms": 4000,
-          "emoji": "5️⃣"
-        },
-        {
-          "text": "You're doing great. Keep going slowly",
-          "duration_ms": 5000,
-          "emoji": "💚"
-        },
-        {
-          "text": "Breathe... then 6",
-          "duration_ms": 4000,
-          "emoji": "6️⃣"
-        },
-        {
-          "text": "Breathe... then 7",
-          "duration_ms": 4000,
-          "emoji": "7️⃣"
-        },
-        {
-          "text": "Breathe... then 8",
-          "duration_ms": 4000,
-          "emoji": "8️⃣"
-        },
-        {
-          "text": "Breathe... then 9",
-          "duration_ms": 4000,
-          "emoji": "9️⃣"
-        },
-        {
-          "text": "Breathe... and 10!",
-          "duration_ms": 5000,
+          "text": "Take a breath, then say 1... breathe... 2... breathe... 3... breathe... 4... breathe... 5... breathe... 6... breathe... 7... breathe... 8... breathe... 9... breathe... and 10!",
+          "duration_ms": 44000,
           "emoji": "🔟"
         },
         {
-          "text": "Take one more big, slow breath in... and out",
-          "duration_ms": 6000,
-          "emoji": "😌"
-        },
-        {
           "text": "Excellent! You counted all the way to 10. You helped yourself calm down",
-          "duration_ms": 6000,
+          "duration_ms": 8000,
           "emoji": "🌟"
         }
       ],
@@ -396,58 +201,23 @@
       "icon_emoji": "✊",
       "recommended_for_emotions": ["angry", "scared"],
       "recommended_for_intensities": [2, 3, 4, 5],
-      "duration_seconds": 180,
+      "duration_seconds": 60,
       "supports_repetition": true,
       "choice_category": "movement",
       "steps": [
         {
           "text": "This exercise helps let go of tight, uncomfortable feelings in your body",
-          "duration_ms": 7000,
+          "duration_ms": 8000,
           "emoji": "✊"
         },
         {
-          "text": "Make tight fists with both hands. Squeeze them as hard as you can!",
-          "duration_ms": 8000,
-          "emoji": "👊"
-        },
-        {
-          "text": "Hold it... squeeze... notice how it feels",
-          "duration_ms": 6000,
+          "text": "Make tight fists with both hands. Squeeze them as hard as you can! Hold it... Now let go and relax them completely. Now squeeze your shoulders up to your ears! Hold it... And let them drop down",
+          "duration_ms": 44000,
           "emoji": "💪"
-        },
-        {
-          "text": "Now let go! Open your hands and relax them completely",
-          "duration_ms": 6000,
-          "emoji": "🖐️"
-        },
-        {
-          "text": "Feel the difference? That's what relaxed feels like",
-          "duration_ms": 6000,
-          "emoji": "😌"
-        },
-        {
-          "text": "Now squeeze your shoulders up to your ears! Scrunch them up tight!",
-          "duration_ms": 8000,
-          "emoji": "😬"
-        },
-        {
-          "text": "Hold it... feel the squeeze...",
-          "duration_ms": 6000,
-          "emoji": "💪"
-        },
-        {
-          "text": "And let them drop! Let your shoulders relax down",
-          "duration_ms": 6000,
-          "emoji": "😌"
-        },
-        {
-          "text": "Take a nice slow breath in... and let it all out",
-          "duration_ms": 7000,
-          "emoji": "💨"
         },
         {
           "text": "Great work! You helped your body let go of tension",
-          "duration_ms": 5000,
+          "duration_ms": 8000,
           "emoji": "⭐"
         }
       ],
@@ -462,58 +232,23 @@
       "icon_emoji": "🏝️",
       "recommended_for_emotions": ["scared", "sad"],
       "recommended_for_intensities": [2, 3, 4],
-      "duration_seconds": 180,
+      "duration_seconds": 60,
       "supports_repetition": true,
       "choice_category": "awareness",
       "steps": [
         {
-          "text": "Let's imagine a place where you feel really safe and happy",
-          "duration_ms": 6000,
+          "text": "Let's imagine a place where you feel really safe and happy. Close your eyes if that feels okay",
+          "duration_ms": 9000,
           "emoji": "🏝️"
         },
         {
-          "text": "Close your eyes if that feels okay, or just look down",
-          "duration_ms": 5000,
-          "emoji": "👁️"
-        },
-        {
-          "text": "Think of a place you love. Maybe it's your room, or outside, or somewhere special",
-          "duration_ms": 8000,
+          "text": "Think of a place you love. What do you see there? What sounds would you hear? How does it feel? Who else is there? Take a slow breath and feel how safe and calm this place is",
+          "duration_ms": 43000,
           "emoji": "💭"
         },
         {
-          "text": "What do you see there? What colors? What things?",
-          "duration_ms": 8000,
-          "emoji": "🎨"
-        },
-        {
-          "text": "What sounds would you hear in your safe place?",
-          "duration_ms": 7000,
-          "emoji": "🎵"
-        },
-        {
-          "text": "How does it feel? Is it warm or cool? Cozy?",
-          "duration_ms": 7000,
-          "emoji": "☀️"
-        },
-        {
-          "text": "Who else is there? Maybe someone you love, or a pet, or just you",
-          "duration_ms": 8000,
-          "emoji": "💚"
-        },
-        {
-          "text": "Take a slow breath and feel how safe and calm this place is",
-          "duration_ms": 8000,
-          "emoji": "😌"
-        },
-        {
-          "text": "You can come back to this place in your mind whenever you need to",
-          "duration_ms": 7000,
-          "emoji": "✨"
-        },
-        {
           "text": "When you're ready, open your eyes. You did a great job imagining!",
-          "duration_ms": 6000,
+          "duration_ms": 8000,
           "emoji": "🌟"
         }
       ],
@@ -528,58 +263,23 @@
       "icon_emoji": "🌈",
       "recommended_for_emotions": ["angry", "scared", "sad"],
       "recommended_for_intensities": [2, 3, 4],
-      "duration_seconds": 180,
+      "duration_seconds": 60,
       "supports_repetition": true,
       "choice_category": "calming",
       "steps": [
         {
-          "text": "Let's use our imagination and breathing together",
-          "duration_ms": 5000,
+          "text": "Let's use our imagination and breathing together. Think of a color that makes you feel calm and happy",
+          "duration_ms": 10000,
           "emoji": "🌈"
         },
         {
-          "text": "Think of a color that makes you feel calm and happy. Maybe blue, or green, or purple",
-          "duration_ms": 8000,
+          "text": "Breathe in slowly, and imagine breathing in that calm color. See it filling up your body. Now breathe out slowly and imagine breathing out gray or dark colors. Do this a few more times",
+          "duration_ms": 42000,
           "emoji": "💙"
         },
         {
-          "text": "Breathe in slowly, and imagine breathing in that calm color",
-          "duration_ms": 7000,
-          "emoji": "💚"
-        },
-        {
-          "text": "See it filling up your body with calm, peaceful feelings",
-          "duration_ms": 7000,
-          "emoji": "✨"
-        },
-        {
-          "text": "Now breathe out slowly. As you breathe out, imagine breathing out gray or dark colors",
-          "duration_ms": 8000,
-          "emoji": "🌫️"
-        },
-        {
-          "text": "You're breathing out the worried or angry or sad feelings",
-          "duration_ms": 7000,
-          "emoji": "💨"
-        },
-        {
-          "text": "Breathe in your calm color again... filling up with peace",
-          "duration_ms": 7000,
-          "emoji": "💜"
-        },
-        {
-          "text": "And breathe out the uncomfortable feelings... letting them go",
-          "duration_ms": 7000,
-          "emoji": "🌬️"
-        },
-        {
-          "text": "One more time. In with calm color... out with dark feelings",
-          "duration_ms": 8000,
-          "emoji": "🌈"
-        },
-        {
           "text": "Beautiful! You used your imagination and breathing to help yourself feel better",
-          "duration_ms": 6000,
+          "duration_ms": 8000,
           "emoji": "🌟"
         }
       ],
@@ -594,58 +294,23 @@
       "icon_emoji": "🕺",
       "recommended_for_emotions": ["angry", "sad", "scared"],
       "recommended_for_intensities": [3, 4, 5],
-      "duration_seconds": 180,
+      "duration_seconds": 60,
       "supports_repetition": true,
       "choice_category": "movement",
       "steps": [
         {
-          "text": "Sometimes moving your body really helps with big feelings. Let's try it!",
-          "duration_ms": 7000,
+          "text": "Sometimes moving your body really helps with big feelings. Stand up and give yourself some space",
+          "duration_ms": 9000,
           "emoji": "🕺"
         },
         {
-          "text": "If you can, stand up and give yourself some space",
-          "duration_ms": 5000,
-          "emoji": "🏃"
-        },
-        {
-          "text": "Start by jumping up and down! Jump! Jump! Jump!",
-          "duration_ms": 10000,
+          "text": "Jump up and down! Jump! Jump! Now shake your whole body! Wiggle everything! Shake your arms, legs, wiggle your head! Jump some more! Get all that feeling out!",
+          "duration_ms": 43000,
           "emoji": "⬆️"
-        },
-        {
-          "text": "Keep jumping! Let all that energy out!",
-          "duration_ms": 8000,
-          "emoji": "💥"
-        },
-        {
-          "text": "Now stop and shake your whole body! Wiggle everything!",
-          "duration_ms": 8000,
-          "emoji": "💃"
-        },
-        {
-          "text": "Shake your arms! Shake your legs! Wiggle your head!",
-          "duration_ms": 8000,
-          "emoji": "🤪"
-        },
-        {
-          "text": "Jump some more! Get all that feeling out of your body!",
-          "duration_ms": 10000,
-          "emoji": "⬆️"
-        },
-        {
-          "text": "And... stop! Stand still for a moment",
-          "duration_ms": 6000,
-          "emoji": "🛑"
-        },
-        {
-          "text": "Take a big breath in... and let it all out with a big sigh",
-          "duration_ms": 7000,
-          "emoji": "😮‍💨"
         },
         {
           "text": "Awesome job! You moved that feeling through your body!",
-          "duration_ms": 5000,
+          "duration_ms": 8000,
           "emoji": "⭐"
         }
       ],
