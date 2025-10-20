@@ -10,7 +10,7 @@ import { actionAgentStoryInputSchema, actionAgentStoryOutputSchema } from '@/lib
 import { ACTION_AGENT_STORY_SYSTEM_PROMPT, AGENT_MODEL_CONFIG, FALLBACK_MESSAGES } from '@/lib/agents/prompts'
 import { validateStoryOutput } from '@/lib/services/agentSafety'
 import { callOpenAIWithTimeout, AGENT_TIMEOUTS, OpenAITimeoutError } from '@/lib/agents/openai-client'
-import { logStoryGeneration, logAgentAction, logFallback, logSafetyCheck } from '@/lib/services/agentLogger'
+import { logAgentAction, logFallback, logSafetyCheck } from '@/lib/services/agentLogger'
 import type { ActionAgentStoryOutput } from '@/types/agents'
 
 // Initialize OpenAI client

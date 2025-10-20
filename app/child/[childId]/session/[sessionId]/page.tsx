@@ -1,9 +1,9 @@
+'use client'
+
 /**
  * Session Page
  * Main session UI integrating ChatInterface with XState machine for all 5 rounds
  */
-
-'use client'
 
 // Force dynamic rendering for this page (prevents static generation issues)
 export const dynamic = 'force-dynamic'
@@ -27,11 +27,8 @@ export default function SessionPage({
   const supabase = useSupabase()
   const [child, setChild] = useState<Child | null>(null)
   const [currentRoundNumber, setCurrentRoundNumber] = useState(1)
-  const [needsRefresh, setNeedsRefresh] = useState(false)
-
-  // Use refs instead of state to prevent re-renders when toggling locks/counters
-  const isCreatingRound = useRef(false)
-  const roundCreationAttempts = useRef(0)
+  const hasCreatedRound = useRef(false)
+  const pollInterval = useRef<NodeJS.Timeout | null>(null)
 
   const {
     session,
@@ -43,8 +40,8 @@ export default function SessionPage({
 
   // Derive current round from session data
   const currentRound = useMemo(
-    () => session?.rounds?.find(r => r.round_number === currentRoundNumber),
-    [session?.rounds, currentRoundNumber]
+    () => session?.emotion_rounds?.find(r => r.round_number === currentRoundNumber),
+    [session?.emotion_rounds, currentRoundNumber]
   )
 
   // Load child data
@@ -62,95 +59,105 @@ export default function SessionPage({
     loadChild()
   }, [params.childId, supabase])
 
-  // Separate one-shot refresh effect after round creation
-  // This prevents infinite loops in the main effect
+  // Create round when needed
   useEffect(() => {
-    if (!needsRefresh) return
-
-    (async () => {
-      try {
-        console.log('🔄 Triggering session refresh after round creation…')
-        await refreshSession()
-        console.log('✅ Session refreshed')
-      } finally {
-        // Important: reset the flag so this effect does not loop
-        setNeedsRefresh(false)
+    if (currentRound) {
+      console.log(`[SessionPage] Round ${currentRoundNumber} exists`)
+      hasCreatedRound.current = false // Reset for next round
+      // Clear polling if it exists
+      if (pollInterval.current) {
+        clearTimeout(pollInterval.current) // Changed from clearInterval
+        pollInterval.current = null
       }
-    })()
-  }, [needsRefresh, refreshSession])
+      return
+    }
 
-  // Create round if needed for agent-enabled sessions
-  useEffect(() => {
-    // Only run when we *know* the intended round is missing
-    if (isCreatingRound.current) return
-    if (currentRound) return // ← prevents duplicates
-    if (!session?.id) return
-    if (!session.agent_enabled) return
-    if (!child) return
+    if (hasCreatedRound.current) {
+      console.log('[SessionPage] Already created round, waiting for it to appear...')
+      return
+    }
 
-    // Optional cap to avoid runaway logs
-    if (roundCreationAttempts.current >= 3) {
-      console.error(`Failed to create round ${currentRoundNumber} after 3 attempts`)
+    if (!session?.id || !child || !session.agent_enabled) {
       return
     }
 
     (async () => {
-      isCreatingRound.current = true
-      roundCreationAttempts.current += 1
+      hasCreatedRound.current = true
 
       try {
-        console.log(`Creating round ${currentRoundNumber} for session ${session.id}...`)
+        console.log(`[SessionPage] Creating round ${currentRoundNumber}...`)
+        
         const res = await fetch('/api/rounds', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             session_id: session.id,
             round_number: currentRoundNumber,
-            story_id: null, // Not needed for agent-enabled sessions
+            story_id: null,
             age_band: child.age_band,
           }),
+          cache: 'no-store', // Disable caching
         })
 
         if (!res.ok) {
-          // Retry only on 5xx if desired; 4xx should throw
-          const status = res.status
-          if (status >= 500) {
-            console.warn(`Round create attempt ${roundCreationAttempts.current} failed with ${status}; will retry if under cap.`)
-            return // effect may run again
-          }
-          const text = await res.text().catch(() => '')
-          throw new Error(`Create round failed: ${status} ${text}`)
+          throw new Error(`Failed to create round: ${res.status}`)
         }
 
-        // Success on 200 or 201
-        console.log(`✅ Round ${currentRoundNumber} request completed (${res.status})`)
-        roundCreationAttempts.current = 0
+        const data = await res.json()
+        
+        // FIX: Access round.id instead of data.id
+        console.log(`[SessionPage] ✅ Round created:`, data.round?.id || data.id)
 
-        // Instead of refreshing here (which loops), trigger a one-shot refresh if needed:
-        setNeedsRefresh(true)
+        // Start polling with exponential backoff (fallback if realtime doesn't work)
+        console.log('[SessionPage] Starting poll for round...')
+        let attempts = 0
+        let currentDelay = 1000 // Start at 1 second
+
+        const schedulePoll = () => {
+          pollInterval.current = setTimeout(async () => {
+            attempts++
+            console.log(`[SessionPage] Polling attempt ${attempts} (delay: ${currentDelay}ms)...`)
+            await refreshSession(true)
+
+            // Stop after 10 attempts (~30 seconds total)
+            if (attempts >= 10) {
+              console.warn('[SessionPage] Polling timeout after 10 attempts')
+              pollInterval.current = null
+            } else {
+              // Exponential backoff: 1s, 2s, 4s, 8s, 8s, 8s...
+              currentDelay = Math.min(currentDelay * 2, 8000)
+              schedulePoll()
+            }
+          }, currentDelay)
+        }
+
+        schedulePoll()
+        
       } catch (err) {
-        console.error('Error creating round:', err)
-      } finally {
-        isCreatingRound.current = false
+        console.error('[SessionPage] Error creating round:', err)
+        hasCreatedRound.current = false
       }
     })()
-  }, [currentRound, currentRoundNumber, session?.id, session?.agent_enabled, child])
+  }, [currentRound, currentRoundNumber, session?.id, session?.agent_enabled, child, refreshSession])
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollInterval.current) {
+        clearTimeout(pollInterval.current) // Changed from clearInterval
+      }
+    }
+  }, [])
 
   const handleRoundComplete = () => {
-    console.log('Round complete, current round:', currentRoundNumber)
+    console.log('[SessionPage] Round complete')
 
     if (currentRoundNumber >= 5) {
-      // Session complete - mark as completed
-      console.log('Session complete!')
+      console.log('[SessionPage] Session complete!')
       return
     }
 
-    // Move to next round
-    const nextRound = currentRoundNumber + 1
-    console.log('Moving to round:', nextRound)
-    setCurrentRoundNumber(nextRound)
-    // Reset retry counter for new round
-    roundCreationAttempts.current = 0
+    setCurrentRoundNumber(currentRoundNumber + 1)
   }
 
   if (sessionLoading || !child) {
@@ -161,8 +168,6 @@ export default function SessionPage({
     )
   }
 
-  // Error check: only show error if there's an actual error or missing session
-  // Note: stories can be empty if agent mode is enabled (stories generated per round)
   if (sessionError || !session) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -182,7 +187,6 @@ export default function SessionPage({
     )
   }
 
-  // Check if stories are required (non-agent mode) but missing
   if (!session.agent_enabled && stories.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -202,7 +206,6 @@ export default function SessionPage({
     )
   }
 
-  // Check if session is complete
   const isSessionComplete = session.completed_at !== null || currentRoundNumber > 5
 
   if (isSessionComplete) {
@@ -260,12 +263,9 @@ export default function SessionPage({
   let currentStory = null
 
   if (session.agent_enabled) {
-    // For agent-enabled sessions, get story from round data (dynamically generated)
-    const currentRound = session.rounds?.[currentRoundNumber - 1]
-
     if (currentRound?.action_agent_story) {
-      // Transform agent story format to Story format
       const agentStory = currentRound.action_agent_story as any
+      
       currentStory = {
         id: `agent-story-${currentRound.id}`,
         text: agentStory.story_text,
@@ -277,29 +277,21 @@ export default function SessionPage({
       }
     }
   } else {
-    // For non-agent sessions, use pre-selected stories
     currentStory = stories[currentRoundNumber - 1]
   }
 
-  // Wait for story to load
   if (!currentStory) {
-    const loadingMessage = session.agent_enabled && isCreatingRound.current
-      ? `Creating a personalized story for round ${currentRoundNumber}...`
-      : `Loading story for round ${currentRoundNumber}...`
-
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md">
           <CardHeader>
-            <CardTitle>{loadingMessage}</CardTitle>
+            <CardTitle>Creating your story...</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-            {session.agent_enabled && isCreatingRound.current && (
-              <p className="text-sm text-muted-foreground text-center">
-                This may take a few moments...
-              </p>
-            )}
+            <p className="text-sm text-muted-foreground text-center">
+              This may take 5-10 seconds...
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -308,7 +300,6 @@ export default function SessionPage({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-8">
-      {/* KEY PROP FORCES RE-RENDER WHEN ROUND CHANGES */}
       <ChatInterface
         key={`round-${currentRoundNumber}`}
         sessionId={session.id}

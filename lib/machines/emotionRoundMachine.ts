@@ -88,6 +88,64 @@ const fetchRecommendedScripts = fromPromise(
   }
 )
 
+const updateRound = fromPromise(
+  async ({
+    input,
+  }: {
+    input: {
+      sessionId: string
+      roundNumber: number
+      labeledEmotion: EmotionLabel
+      isCorrect: boolean
+      preIntensity: IntensityLevel
+      postIntensity: IntensityLevel
+      scriptId: string | null
+    }
+  }): Promise<{ roundId: string }> => {
+    console.log('[Machine] Updating round with intensities and emotion data...')
+
+    // First, find the round ID for this session and round number
+    const sessionResponse = await fetch(`/api/sessions/${input.sessionId}`, {
+      cache: 'no-store',
+    })
+
+    if (!sessionResponse.ok) {
+      throw new Error('Failed to fetch session')
+    }
+
+    const sessionData = await sessionResponse.json()
+    const round = sessionData.session.emotion_rounds?.find(
+      (r: any) => r.round_number === input.roundNumber
+    )
+
+    if (!round) {
+      throw new Error(`Round ${input.roundNumber} not found`)
+    }
+
+    // PATCH the round with all collected data
+    const response = await fetch(`/api/rounds/${round.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        labeled_emotion: input.labeledEmotion,
+        is_correct: input.isCorrect,
+        pre_intensity: input.preIntensity,
+        post_intensity: input.postIntensity,
+        regulation_script_id: input.scriptId,
+      }),
+      cache: 'no-store',
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to update round')
+    }
+
+    console.log('[Machine] ✅ Round updated successfully - Observer agent should trigger now')
+
+    return { roundId: round.id }
+  }
+)
+
 const generatePraise = fromPromise(
   async ({
     input,
@@ -142,6 +200,7 @@ export const emotionRoundMachine = setup({
   actors: {
     checkEmotionCorrectness,
     fetchRecommendedScripts,
+    updateRound,
     generatePraise,
   },
   guards: {
@@ -274,13 +333,37 @@ export const emotionRoundMachine = setup({
     reflecting: {
       on: {
         REFLECTION_COMPLETED: {
-          target: 'generatingPraise',
+          target: 'updatingRound',
           actions: assign({
             postIntensity: ({ event }) => event.postIntensity,
             intensityDelta: ({ context, event }) =>
               context.preIntensity !== null
                 ? event.postIntensity - context.preIntensity
                 : null,
+          }),
+        },
+      },
+    },
+
+    updatingRound: {
+      invoke: {
+        src: 'updateRound',
+        input: ({ context }) => ({
+          sessionId: context.sessionId,
+          roundNumber: context.roundNumber,
+          labeledEmotion: context.labeledEmotion!,
+          isCorrect: context.isCorrect!,
+          preIntensity: context.preIntensity!,
+          postIntensity: context.postIntensity!,
+          scriptId: context.selectedScript?.id || null,
+        }),
+        onDone: {
+          target: 'generatingPraise',
+        },
+        onError: {
+          target: 'generatingPraise',
+          actions: assign({
+            error: 'Failed to update round data',
           }),
         },
       },

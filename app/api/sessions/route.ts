@@ -4,6 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+
+// Disable caching to ensure fresh data
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { createServerClient } from '@/lib/supabase/client'
 import { createSessionSchema } from '@/lib/validation/schemas'
 import { getRandomStories } from '@/lib/services/stories'

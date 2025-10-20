@@ -6,6 +6,36 @@ import { NextRequest, NextResponse } from 'next/server';
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY; // Server-side only!
 const VOICE_ID = 'EXAVITQu4vr4xnSDxMaL'; // Sarah (child-friendly)
 
+/**
+ * Sanitize text for ElevenLabs TTS to prevent voice splitting/overlapping
+ * Removes problematic formatting that causes the model to use multiple voices
+ */
+function sanitizeTextForTTS(text: string): string {
+  return text
+    // Remove emojis (they can cause pauses or voice changes)
+    .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // Emoticons
+    .replace(/[\u{1F300}-\u{1F5FF}]/gu, '') // Misc Symbols and Pictographs
+    .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // Transport and Map
+    .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '') // Flags
+    .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Misc symbols
+    .replace(/[\u{2700}-\u{27BF}]/gu, '')   // Dingbats
+    .replace(/[\u{FE00}-\u{FE0F}]/gu, '')   // Variation Selectors
+    .replace(/[\u{1F900}-\u{1F9FF}]/gu, '') // Supplemental Symbols and Pictographs
+    .replace(/[\u{1FA00}-\u{1FA6F}]/gu, '') // Chess Symbols
+    .replace(/[\u{1FA70}-\u{1FAFF}]/gu, '') // Symbols and Pictographs Extended-A
+    // Normalize ellipses (... becomes a brief pause)
+    .replace(/\.{3,}/g, ',')
+    // Remove multiple spaces
+    .replace(/\s+/g, ' ')
+    // Remove line breaks (replace with space)
+    .replace(/[\r\n]+/g, ' ')
+    // Normalize quotes (straight quotes only)
+    .replace(/[""]/g, '"')
+    .replace(/['']/g, "'")
+    // Remove leading/trailing whitespace
+    .trim();
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { text } = await req.json();
@@ -17,6 +47,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Sanitize text before sending to ElevenLabs
+    const sanitizedText = sanitizeTextForTTS(text);
+
     if (!ELEVENLABS_API_KEY) {
       console.error('[ElevenLabs] API key not configured');
       return NextResponse.json(
@@ -25,7 +58,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log('[ElevenLabs] Generating audio for:', text.substring(0, 50) + '...');
+    console.log('[ElevenLabs] Generating audio for:', sanitizedText.substring(0, 50) + '...');
+    if (text !== sanitizedText) {
+      console.log('[ElevenLabs] Text was sanitized (emojis/formatting removed)');
+    }
 
     // Call ElevenLabs API
     const response = await fetch(
@@ -37,7 +73,7 @@ export async function POST(req: NextRequest) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          text,
+          text: sanitizedText,
           model_id: 'eleven_turbo_v2_5',
           voice_settings: {
             stability: 0.5,

@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSupabase } from '@/components/providers/SupabaseProvider'
 import type {
   SessionWithRounds,
@@ -24,7 +24,7 @@ interface UseSessionReturn {
   currentStory: Story | null
   isLoading: boolean
   error: string | null
-  refreshSession: () => Promise<void>
+  refreshSession: (silent?: boolean) => Promise<void>
   advanceRound: () => void
   completeSession: () => Promise<void>
 }
@@ -37,19 +37,45 @@ export function useSession(sessionId: string | null): UseSessionReturn {
   const [currentRoundIndex, setCurrentRoundIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Track if we're currently fetching to prevent overlapping requests
+  const isFetching = useRef(false)
+  const lastFetchTime = useRef(0)
+  const realtimeDebounceTimer = useRef<NodeJS.Timeout | null>(null)
 
   // Fetch session data
-  const fetchSession = useCallback(async () => {
+  const fetchSession = useCallback(async (silent = false) => {
     if (!sessionId) {
       setIsLoading(false)
       return
     }
 
+    // Prevent overlapping fetches
+    if (isFetching.current) {
+      console.log('[useSession] Already fetching, skipping...')
+      return
+    }
+
+    // Rate limiting: Don't fetch more than once per 500ms
+    const now = Date.now()
+    if (silent && now - lastFetchTime.current < 500) {
+      console.log('[useSession] Rate limited, skipping fetch (too soon)')
+      return
+    }
+
     try {
-      setIsLoading(true)
+      isFetching.current = true
+      lastFetchTime.current = now
+      
+      if (!silent) {
+        setIsLoading(true)
+      }
       setError(null)
 
-      const response = await fetch(`/api/sessions/${sessionId}`)
+      console.log('[useSession] Fetching session:', sessionId)
+      const response = await fetch(`/api/sessions/${sessionId}`, {
+        cache: 'no-store', // Disable caching to get fresh rounds data
+      })
 
       if (!response.ok) {
         throw new Error('Failed to fetch session')
@@ -57,19 +83,25 @@ export function useSession(sessionId: string | null): UseSessionReturn {
 
       const data: GetSessionResponse = await response.json()
 
+      console.log('[useSession] Session fetched, emotion_rounds:', data.session.emotion_rounds?.length || 0)
+
       setSession(data.session)
-      setRounds(data.session.rounds || [])
+      setRounds(data.session.emotion_rounds || [])
       setStories(data.stories)
     } catch (err) {
-      console.error('Error fetching session:', err)
+      console.error('[useSession] Error fetching session:', err)
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
-      setIsLoading(false)
+      isFetching.current = false
+      if (!silent) {
+        setIsLoading(false)
+      }
     }
   }, [sessionId])
 
   // Initial fetch
   useEffect(() => {
+    console.log('[useSession] Initial fetch for session:', sessionId)
     fetchSession()
   }, [fetchSession])
 
@@ -77,6 +109,8 @@ export function useSession(sessionId: string | null): UseSessionReturn {
   useEffect(() => {
     if (!sessionId) return
 
+    console.log('[useSession] Setting up realtime subscription for session:', sessionId)
+    
     const channel = supabase
       .channel(`session-${sessionId}`)
       .on(
@@ -88,13 +122,29 @@ export function useSession(sessionId: string | null): UseSessionReturn {
           filter: `session_id=eq.${sessionId}`,
         },
         (payload) => {
-          console.log('Round updated:', payload)
-          fetchSession() // Refresh session data
+          console.log('[useSession] Round updated via realtime:', payload)
+
+          // Debounce realtime updates - wait 1 second before fetching
+          // This prevents rapid-fire updates if multiple changes happen at once
+          if (realtimeDebounceTimer.current) {
+            clearTimeout(realtimeDebounceTimer.current)
+          }
+
+          realtimeDebounceTimer.current = setTimeout(() => {
+            console.log('[useSession] Debounced realtime fetch executing...')
+            fetchSession(true)
+          }, 1000)
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('[useSession] Realtime subscription status:', status)
+      })
 
     return () => {
+      console.log('[useSession] Cleaning up realtime subscription')
+      if (realtimeDebounceTimer.current) {
+        clearTimeout(realtimeDebounceTimer.current)
+      }
       supabase.removeChannel(channel)
     }
   }, [sessionId, supabase, fetchSession])
@@ -125,6 +175,7 @@ export function useSession(sessionId: string | null): UseSessionReturn {
         body: JSON.stringify({
           completed_at: new Date().toISOString(),
         }),
+        cache: 'no-store', // Disable caching
       })
 
       if (!response.ok) {
@@ -133,7 +184,7 @@ export function useSession(sessionId: string | null): UseSessionReturn {
 
       await fetchSession()
     } catch (err) {
-      console.error('Error completing session:', err)
+      console.error('[useSession] Error completing session:', err)
       setError(err instanceof Error ? err.message : 'Failed to complete session')
     }
   }, [sessionId, fetchSession])
@@ -195,6 +246,7 @@ export function useCreateSession() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ child_id: childId }),
+        cache: 'no-store', // Disable caching
       })
 
       if (!response.ok) {
@@ -204,7 +256,7 @@ export function useCreateSession() {
       const data = await response.json()
       return data.session
     } catch (err) {
-      console.error('Error creating session:', err)
+      console.error('[useCreateSession] Error creating session:', err)
       setError(err instanceof Error ? err.message : 'Unknown error')
       return null
     } finally {

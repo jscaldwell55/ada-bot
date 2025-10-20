@@ -4,7 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/client'
+
+// Disable caching to ensure fresh data
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+import { createServiceClient } from '@/lib/supabase/service'
 import { createRoundSchema } from '@/lib/validation/schemas'
 import type { CreateRoundResponse } from '@/types/api'
 import type { InsertEmotionRound } from '@/types/database'
@@ -16,8 +20,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = createRoundSchema.parse(body)
 
-    // Temporary workaround for Supabase type inference issue
-    const supabase = createServerClient() as any
+    // Use service role client to bypass RLS (same as sessions API)
+    const supabase = createServiceClient() as any
 
     // IDEMPOTENCY CHECK: Check if round already exists first
     const { data: existingRound } = await supabase
@@ -221,6 +225,24 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`✅ Round ${validatedData.round_number} created successfully`)
+    console.log('[Rounds API] Created round:', {
+      id: round.id,
+      session_id: round.session_id,
+      round_number: round.round_number,
+    })
+
+    // VERIFICATION: Try to fetch the round we just created
+    const { data: verifyRound, error: verifyError } = await supabase
+      .from('emotion_rounds')
+      .select('*')
+      .eq('id', round.id)
+      .single()
+
+    console.log('[Rounds API] Verification query:', {
+      found: !!verifyRound,
+      error: verifyError,
+      matchesSessionId: verifyRound?.session_id === validatedData.session_id,
+    })
 
     // Log story generation with proper round_id now that round is created
     if (generatedStory && (body as any).storyGenerationMetadata) {

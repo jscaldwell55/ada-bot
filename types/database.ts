@@ -360,7 +360,7 @@ export interface SafetyAlertFilters {
 
 // ==================== Extended Types with Relations ====================
 export interface SessionWithRounds extends Session {
-  rounds: EmotionRound[]
+  emotion_rounds: EmotionRound[]  // Changed from 'rounds' to match Supabase join
 }
 
 export interface EmotionRoundWithStory extends EmotionRound {

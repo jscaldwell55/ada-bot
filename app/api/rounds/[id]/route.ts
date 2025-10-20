@@ -4,7 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/client'
+
+// Disable caching to ensure fresh data
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+import { createServiceClient } from '@/lib/supabase/service'
 import { updateRoundSchema } from '@/lib/validation/schemas'
 import type { UpdateRoundResponse } from '@/types/api'
 
@@ -19,7 +23,7 @@ export async function PATCH(
     const body = await request.json()
     const validatedData = updateRoundSchema.parse(body)
 
-    const supabase = createServerClient() as any
+    const supabase = createServiceClient() as any
 
     // Fetch the round to verify it exists and get current data
     const { data: existingRound, error: fetchError } = await supabase
@@ -99,6 +103,7 @@ export async function PATCH(
 
     const response: UpdateRoundResponse = {
       round: updatedRound,
+      is_correct: updatedRound.is_correct || false,
     }
 
     return NextResponse.json(response, { status: 200 })
@@ -144,7 +149,7 @@ async function triggerObserverAgent(round: any, session: any): Promise<void> {
       targetEmotion = round.action_agent_story.target_emotion
     } else if (round.story_id) {
       // Static story - fetch from database
-      const supabase = createServerClient() as any
+      const supabase = createServiceClient() as any
       const { data: story } = await supabase
         .from('stories')
         .select('text, title, emotion')
@@ -161,7 +166,7 @@ async function triggerObserverAgent(round: any, session: any): Promise<void> {
     // Get regulation script name
     let scriptName = 'No script used'
     if (round.regulation_script_id) {
-      const supabase = createServerClient() as any
+      const supabase = createServiceClient() as any
       const { data: script } = await supabase
         .from('regulation_scripts')
         .select('name')
@@ -220,7 +225,7 @@ async function triggerObserverAgent(round: any, session: any): Promise<void> {
 
       // Update session cumulative_context
       if (observerData.success && observerData.context) {
-        const supabase = createServerClient() as any
+        const supabase = createServiceClient() as any
         const currentContext = session.cumulative_context || []
         const updatedContext = [...currentContext]
         updatedContext[round.round_number - 1] = observerData.context
