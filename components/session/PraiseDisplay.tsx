@@ -3,9 +3,10 @@
 /**
  * Praise Display Component
  * Shows generated praise message with celebration animation
+ * FIXED: Prevents duplicate TTS calls that cause echo/dual voice
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Sparkles, Trophy, Star, Heart, Volume2 } from 'lucide-react'
@@ -29,23 +30,63 @@ export default function PraiseDisplay({
 }: PraiseDisplayProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [confettiActive, setConfettiActive] = useState(false)
-  const { speak, isPlaying } = useElevenLabsTTS()
+  const { speak, stop, isPlaying } = useElevenLabsTTS()
+  
+  // Track if we've already spoken this message to prevent duplicates
+  const hasSpokenRef = useRef(false)
+  const currentMessageRef = useRef(message)
 
   useEffect(() => {
+    // Reset spoken flag if message changes
+    if (currentMessageRef.current !== message) {
+      hasSpokenRef.current = false
+      currentMessageRef.current = message
+    }
+
     // Trigger entrance animation
-    setTimeout(() => setIsVisible(true), 100)
+    const showTimer = setTimeout(() => setIsVisible(true), 100)
 
     // Trigger confetti
-    setTimeout(() => setConfettiActive(true), 300)
-    setTimeout(() => setConfettiActive(false), 3000)
+    const confettiStartTimer = setTimeout(() => setConfettiActive(true), 300)
+    const confettiEndTimer = setTimeout(() => setConfettiActive(false), 3000)
 
-    // Auto-play praise with TTS
-    if (message) {
-      setTimeout(() => {
-        speak(message, { emotion: 'happy' })
+    // Auto-play praise with TTS (only once per message)
+    if (message && !hasSpokenRef.current) {
+      const speakTimer = setTimeout(() => {
+        // Stop any existing audio first
+        stop()
+        
+        // Mark as spoken before calling speak to prevent race conditions
+        hasSpokenRef.current = true
+        
+        speak(message, { emotion: 'happy' }).catch((err) => {
+          console.warn('[PraiseDisplay] Failed to speak praise:', err)
+          // Reset flag on error so user can retry
+          hasSpokenRef.current = false
+        })
       }, 500) // Small delay to let animation settle
+
+      return () => {
+        clearTimeout(showTimer)
+        clearTimeout(confettiStartTimer)
+        clearTimeout(confettiEndTimer)
+        clearTimeout(speakTimer)
+      }
     }
-  }, [message, speak])
+
+    return () => {
+      clearTimeout(showTimer)
+      clearTimeout(confettiStartTimer)
+      clearTimeout(confettiEndTimer)
+    }
+  }, [message]) // ✅ Only 'message' in deps - 'speak' removed to prevent re-runs
+
+  // Cleanup: stop audio when component unmounts
+  useEffect(() => {
+    return () => {
+      stop()
+    }
+  }, [stop])
 
   const improved = intensityDelta !== null && intensityDelta < 0
 

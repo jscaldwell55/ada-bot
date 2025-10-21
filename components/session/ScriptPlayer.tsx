@@ -2,10 +2,11 @@
 
 /**
  * Script Player Component
- * Step through regulation script with auto-advance and Vapi voice
+ * Step through regulation script with auto-advance and voice
+ * FIXED: Prevents duplicate TTS calls that cause echo/dual voice
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { RegulationScript } from '@/types/database'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -29,18 +30,37 @@ export default function ScriptPlayer({
   const [timeLeft, setTimeLeft] = useState(0)
   const { speak, stop, isPlaying: isSpeaking } = useElevenLabsTTS()
 
+  // Track which step we've spoken to prevent duplicates
+  const lastSpokenStepRef = useRef(-1)
+
   const currentStep = script.steps[currentStepIndex]
   const isLastStep = currentStepIndex === script.steps.length - 1
   const progress = ((currentStepIndex + 1) / script.steps.length) * 100
 
-  // Speak current step when it changes
+  // Speak current step when it changes (only once per step)
   useEffect(() => {
-    if (isPlaying && currentStep.text) {
+    if (isPlaying && currentStep.text && lastSpokenStepRef.current !== currentStepIndex) {
+      // Stop any existing audio first
+      stop()
+      
+      // Mark this step as spoken before calling speak
+      lastSpokenStepRef.current = currentStepIndex
+      
       speak(currentStep.text, { emotion: 'calm' }).catch((err) => {
         console.warn('[ScriptPlayer] Failed to speak step:', err)
+        // Reset on error so user can retry
+        lastSpokenStepRef.current = -1
       })
     }
-  }, [currentStepIndex, isPlaying, currentStep.text, speak])
+  }, [currentStepIndex, isPlaying, currentStep.text]) // ✅ 'speak' and 'stop' removed from deps
+
+  // Reset spoken flag when paused/resumed
+  useEffect(() => {
+    if (!isPlaying) {
+      // When pausing, stop the audio
+      stop()
+    }
+  }, [isPlaying, stop])
 
   // Auto-advance timer
   useEffect(() => {
@@ -70,6 +90,13 @@ export default function ScriptPlayer({
       clearInterval(interval)
     }
   }, [currentStepIndex, autoAdvance, isPlaying, currentStep.duration_ms, isLastStep, onComplete])
+
+  // Cleanup: stop audio on unmount
+  useEffect(() => {
+    return () => {
+      stop()
+    }
+  }, [stop])
 
   const handleNext = () => {
     if (isLastStep) {
